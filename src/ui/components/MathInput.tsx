@@ -174,6 +174,59 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         { name: 'Log', display: 'log', template: '\\log_{[10]}[x]', category: 'limits' },
         { name: 'Natural Log', display: 'ln', template: '\\ln[x]', category: 'limits' },
         { name: 'Limit to Infinity', display: 'lim→∞', template: '\\lim_{[x] \\to \\infty} [f(x)]', category: 'limits' },
+
+        // Trigonometric
+        { name: 'Sin', display: 'sin', template: '\\sin [x]', category: 'trigonometric' },
+        { name: 'Cos', display: 'cos', template: '\\cos [x]', category: 'trigonometric' },
+        { name: 'Tan', display: 'tan', template: '\\tan [x]', category: 'trigonometric' },
+        { name: 'Csc', display: 'csc', template: '\\csc [x]', category: 'trigonometric' },
+        { name: 'Sec', display: 'sec', template: '\\sec [x]', category: 'trigonometric' },
+        { name: 'Cot', display: 'cot', template: '\\cot [x]', category: 'trigonometric' },
+        { name: 'Arcsin', display: 'sin⁻¹', template: '\\arcsin [x]', category: 'trigonometric' },
+        { name: 'Arccos', display: 'cos⁻¹', template: '\\arccos [x]', category: 'trigonometric' },
+        { name: 'Arctan', display: 'tan⁻¹', template: '\\arctan [x]', category: 'trigonometric' },
+        { name: 'Sinh', display: 'sinh', template: '\\sinh [x]', category: 'trigonometric' },
+        { name: 'Cosh', display: 'cosh', template: '\\cosh [x]', category: 'trigonometric' },
+        { name: 'Tanh', display: 'tanh', template: '\\tanh [x]', category: 'trigonometric' },
+
+        // Greek Letters
+        { name: 'Alpha', display: 'α', template: '\\alpha', category: 'greek' },
+        { name: 'Beta', display: 'β', template: '\\beta', category: 'greek' },
+        { name: 'Gamma', display: 'γ', template: '\\gamma', category: 'greek' },
+        { name: 'Delta', display: 'δ', template: '\\delta', category: 'greek' },
+        { name: 'Epsilon', display: 'ε', template: '\\epsilon', category: 'greek' },
+        { name: 'Theta', display: 'θ', template: '\\theta', category: 'greek' },
+        { name: 'Lambda', display: 'λ', template: '\\lambda', category: 'greek' },
+        { name: 'Mu', display: 'μ', template: '\\mu', category: 'greek' },
+        { name: 'Pi', display: 'π', template: '\\pi', category: 'greek' },
+        { name: 'Rho', display: 'ρ', template: '\\rho', category: 'greek' },
+        { name: 'Sigma', display: 'σ', template: '\\sigma', category: 'greek' },
+        { name: 'Phi', display: 'φ', template: '\\phi', category: 'greek' },
+        { name: 'Omega', display: 'ω', template: '\\omega', category: 'greek' },
+        { name: 'Delta (Upper)', display: 'Δ', template: '\\Delta', category: 'greek' },
+        { name: 'Gamma (Upper)', display: 'Γ', template: '\\Gamma', category: 'greek' },
+        { name: 'Lambda (Upper)', display: 'Λ', template: '\\Lambda', category: 'greek' },
+        { name: 'Sigma (Upper)', display: 'Σ', template: '\\Sigma', category: 'greek' },
+        { name: 'Omega (Upper)', display: 'Ω', template: '\\Omega', category: 'greek' },
+
+        // Arrows
+        { name: 'Right Arrow', display: '→', template: '\\rightarrow', category: 'arrows' },
+        { name: 'Left Arrow', display: '←', template: '\\leftarrow', category: 'arrows' },
+        { name: 'Left-Right', display: '↔', template: '\\leftrightarrow', category: 'arrows' },
+        { name: 'Implies', display: '⇒', template: '\\Rightarrow', category: 'arrows' },
+        { name: 'If Only If', display: '⇔', template: '\\Leftrightarrow', category: 'arrows' },
+        { name: 'Maps To', display: '↦', template: '\\mapsto', category: 'arrows' },
+        { name: 'Up Arrow', display: '↑', template: '\\uparrow', category: 'arrows' },
+        { name: 'Down Arrow', display: '↓', template: '\\downarrow', category: 'arrows' },
+
+        // Functions
+        { name: 'Exponential', display: 'exp', template: '\\exp([x])', category: 'script' },
+        { name: 'Max', display: 'max', template: '\\max([x])', category: 'script' },
+        { name: 'Min', display: 'min', template: '\\min([x])', category: 'script' },
+        { name: 'Determinant', display: 'det', template: '\\det([A])', category: 'script' },
+        { name: 'GCD', display: 'gcd', template: '\\gcd([a],[b])', category: 'script' },
+        { name: 'DEG', display: 'deg', template: '\\deg([x])', category: 'script' },
+        { name: 'Mod', display: 'mod', template: '\\pmod{[n]}', category: 'script' },
     ];
 
     const categoryLabels: Record<Category, string> = {
