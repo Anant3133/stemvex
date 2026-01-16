@@ -1,0 +1,22 @@
+# OS
+.DS_Store
+
+# Node.js
+node_modules/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+.env
+*.egg-info/
+
+# IDE/Editors
+.vscode/
+.idea/
+*.swp
+*.swo

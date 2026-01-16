@@ -1,0 +1,21 @@
+{
+    "testId": "809edbf7-cb94-4cb7-a785-fed62340941f",
+    "name": "Graphs Addon",
+    "version": "1.0.0",
+    "manifestVersion": 2,
+    "requirements": {
+        "apps": [
+            {
+                "name": "Express",
+                "apiVersion": 1
+            }
+        ]
+    },
+    "entryPoints": [
+        {
+            "type": "panel",
+            "id": "panel1",
+            "main": "index.html"
+        }
+    ]
+}
