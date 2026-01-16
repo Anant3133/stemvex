@@ -160,9 +160,9 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
     }
   };
 
-    // Template definitions with placeholders
-    const templates: Template[] = [
-        // Calculus Templates
+  // Template definitions with placeholders
+  const templates: Template[] = [
+    // Calculus Templates
         { name: 'Integral', display: '∫', template: '\\int [f(x)] \\, dx', category: 'calculus' },
         { name: 'Definite Integral', display: '∫ᵃᵇ', template: '\\int_{[a]}^{[b]} [f(x)] \\, dx', category: 'calculus' },
         { name: 'Double Integral', display: '∬', template: '\\iint_{[D]} [f(x,y)] \\, dA', category: 'calculus' },
@@ -172,7 +172,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         { name: 'Product', display: '∏', template: '\\prod_{[i=1]}^{[n]} [x_i]', category: 'calculus' },
         { name: 'Limit', display: 'lim', template: '\\lim_{[x \\to 0]} [f(x)]', category: 'calculus' },
 
-        // Fraction Templates
+    // Fraction Templates
         { name: 'Fraction', display: 'a/b', template: '\\frac{[a]}{[b]}', category: 'fractions' },
         { name: 'Square Root', display: '√', template: '\\sqrt{[x]}', category: 'fractions' },
         { name: 'Nth Root', display: 'ⁿ√', template: '\\sqrt[[n]]{[x]}', category: 'fractions' },
@@ -180,7 +180,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         { name: 'Subscript', display: 'xᵢ', template: '[x]_{[i]}', category: 'fractions' },
         { name: 'Both', display: 'xᵢⁿ', template: '[x]_{[i]}^{[n]}', category: 'fractions' },
 
-        // Basic Math
+    // Basic Math
         { name: 'Times', display: '×', template: ' \\times ', category: 'basic' },
         { name: 'Divide', display: '÷', template: ' \\div ', category: 'basic' },
         { name: 'Plus Minus', display: '±', template: ' \\pm ', category: 'basic' },
@@ -189,12 +189,12 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         { name: 'Greater Equal', display: '≥', template: ' \\geq ', category: 'basic' },
         { name: 'Infinity', display: '∞', template: '\\infty', category: 'basic' },
 
-        // Limits & Logs
+    // Limits & Logs
         { name: 'Log', display: 'log', template: '\\log_{[10]}[x]', category: 'limits' },
         { name: 'Natural Log', display: 'ln', template: '\\ln[x]', category: 'limits' },
-        { name: 'Limit to Infinity', display: 'lim→∞', template: '\\lim_{[x] \\to \\infty} [f(x)]', category: 'limits' },
+        { name: 'Limit to Infinity', display: 'lim\nx→∞', template: '\\lim_{[x] \\to \\infty} [f(x)]', category: 'limits' },
 
-        // Trigonometric
+    // Trigonometric
         { name: 'Sin', display: 'sin', template: '\\sin [x]', category: 'trigonometric' },
         { name: 'Cos', display: 'cos', template: '\\cos [x]', category: 'trigonometric' },
         { name: 'Tan', display: 'tan', template: '\\tan [x]', category: 'trigonometric' },
@@ -208,7 +208,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         { name: 'Cosh', display: 'cosh', template: '\\cosh [x]', category: 'trigonometric' },
         { name: 'Tanh', display: 'tanh', template: '\\tanh [x]', category: 'trigonometric' },
 
-        // Greek Letters
+    // Greek Letters
         { name: 'Alpha', display: 'α', template: '\\alpha', category: 'greek' },
         { name: 'Beta', display: 'β', template: '\\beta', category: 'greek' },
         { name: 'Gamma', display: 'γ', template: '\\gamma', category: 'greek' },
@@ -228,7 +228,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         { name: 'Sigma (Upper)', display: 'Σ', template: '\\Sigma', category: 'greek' },
         { name: 'Omega (Upper)', display: 'Ω', template: '\\Omega', category: 'greek' },
 
-        // Arrows
+    // Arrows
         { name: 'Right Arrow', display: '→', template: '\\rightarrow', category: 'arrows' },
         { name: 'Left Arrow', display: '←', template: '\\leftarrow', category: 'arrows' },
         { name: 'Left-Right', display: '↔', template: '\\leftrightarrow', category: 'arrows' },
@@ -238,7 +238,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         { name: 'Up Arrow', display: '↑', template: '\\uparrow', category: 'arrows' },
         { name: 'Down Arrow', display: '↓', template: '\\downarrow', category: 'arrows' },
 
-        // Functions
+    // Functions
         { name: 'Exponential', display: 'exp', template: '\\exp([x])', category: 'script' },
         { name: 'Max', display: 'max', template: '\\max([x])', category: 'script' },
         { name: 'Min', display: 'min', template: '\\min([x])', category: 'script' },
@@ -246,9 +246,9 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         { name: 'GCD', display: 'gcd', template: '\\gcd([a],[b])', category: 'script' },
         { name: 'DEG', display: 'deg', template: '\\deg([x])', category: 'script' },
         { name: 'Mod', display: 'mod', template: '\\pmod{[n]}', category: 'script' },
-    ];
+  ];
 
-    const categoryLabels: Record<Category, string> = {
+  const categoryLabels: Record<Category, string> = {
         basic: 'Basic Operations',
         trigonometric: 'Trigonometric',
         calculus: 'Calculus & Analysis',
@@ -257,7 +257,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         fractions: 'Fractions & Powers',
         script: 'Functions',
         limits: 'Limits & Logs',
-    };
+  };
 
   const filteredTemplates = templates.filter(
     (t) => t.category === selectedCategory
@@ -376,7 +376,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
             >
               <span
                 style={{
-                  fontSize: "20px",
+                  fontSize: template.display.includes("\n") ? "14px" : "20px",
                   lineHeight: 1.1,
                   whiteSpace: "pre-line",
                   textAlign: "center",
