@@ -27,6 +27,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<Category>('calculus');
+    const [equationColor, setEquationColor] = useState('#000000');
     const [preview, setPreview] = useState('');
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -73,7 +74,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         setIsProcessing(true);
 
         try {
-            const mathResult = await getMathEngine().convertToPNG(cleanedLatex);
+            const mathResult = await getMathEngine().convertToPNG(cleanedLatex, equationColor);
             const arrayBuffer = await mathResult.imageData.arrayBuffer();
             const sandboxApi = await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(RuntimeType.documentSandbox);
 
@@ -331,9 +332,48 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
 
             {/* Live Preview */}
             {/* Live Preview */}
+            {/* Live Preview */}
             <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                    Live Preview
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '6px'
+                }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151' }}>
+                        Live Preview
+                    </div>
+
+                    {/* Color Picker */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '11px', color: '#64748b' }}>Color:</span>
+                        <div style={{
+                            position: 'relative',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            border: '1px solid #cbd5e0',
+                            background: equationColor,
+                            cursor: 'pointer',
+                        }}>
+                            <input
+                                type="color"
+                                value={equationColor}
+                                onChange={(e) => setEquationColor(e.target.value)}
+                                style={{
+                                    position: 'absolute',
+                                    top: '-50%',
+                                    left: '-50%',
+                                    width: '200%',
+                                    height: '200%',
+                                    cursor: 'pointer',
+                                    opacity: 0,
+                                }}
+                                title="Choose equation color"
+                            />
+                        </div>
+                    </div>
                 </div>
                 <div style={{
                     padding: '12px',
@@ -346,6 +386,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    color: equationColor, // Apply selected color to preview
                 }}>
                     <div
                         style={{

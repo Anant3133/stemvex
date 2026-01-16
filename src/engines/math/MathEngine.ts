@@ -25,7 +25,7 @@ export class MathEngine {
      * @param latex - LaTeX equation (e.g., "E = mc^2")
      * @returns MathResult with PNG data and dimensions
      */
-    async convertToPNG(latex: string): Promise<MathResult> {
+    async convertToPNG(latex: string, color: string = '#000000'): Promise<MathResult> {
         if (!latex || latex.trim() === '') {
             throw new Error('LaTeX input cannot be empty');
         }
@@ -49,8 +49,8 @@ export class MathEngine {
             container.style.position = 'absolute';
             container.style.left = '-9999px'; // Off-screen but visible
             container.style.top = '-9999px';
-            container.style.fontSize = '64px'; // Large for high quality
-            container.style.color = '#000000';
+            container.style.fontSize = '18px'; // Small standard size
+            container.style.color = color;
             container.style.fontFamily = 'KaTeX_Main, Times New Roman, serif';
             container.style.padding = '20px';
             container.style.backgroundColor = '#FFFFFF'; // White background
@@ -81,7 +81,7 @@ export class MathEngine {
         // This avoids the tainted canvas issue with SVG foreignObject
         const renderedCanvas = await html2canvas(element, {
             backgroundColor: '#FFFFFF', // White background for visibility
-            scale: 2, // High DPI for crisp rendering
+            scale: 1.5, // Slight scale for decent quality but small size
             logging: true, // Enable logging to debug
             useCORS: true,
             allowTaint: false,
