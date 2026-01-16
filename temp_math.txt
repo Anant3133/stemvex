@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MathInput - React component with Template Builder and Live Preview
  */
 
@@ -143,36 +143,36 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
     // Template definitions with placeholders
     const templates: Template[] = [
         // Calculus Templates
-        { name: 'Integral', display: '∫', template: '\\int [f(x)] \\, dx', category: 'calculus' },
-        { name: 'Definite Integral', display: '∫ᵃᵇ', template: '\\int_{[a]}^{[b]} [f(x)] \\, dx', category: 'calculus' },
-        { name: 'Double Integral', display: '∬', template: '\\iint_{[D]} [f(x,y)] \\, dA', category: 'calculus' },
+        { name: 'Integral', display: 'âˆ«', template: '\\int [f(x)] \\, dx', category: 'calculus' },
+        { name: 'Definite Integral', display: 'âˆ«áµƒáµ‡', template: '\\int_{[a]}^{[b]} [f(x)] \\, dx', category: 'calculus' },
+        { name: 'Double Integral', display: 'âˆ¬', template: '\\iint_{[D]} [f(x,y)] \\, dA', category: 'calculus' },
         { name: 'Derivative', display: 'd/dx', template: '\\frac{d}{dx}[f(x)]', category: 'calculus' },
-        { name: 'Partial', display: '∂/∂x', template: '\\frac{\\partial [f]}{\\partial [x]}', category: 'calculus' },
-        { name: 'Summation', display: '∑', template: '\\sum_{[i=1]}^{[n]} [a_i]', category: 'calculus' },
-        { name: 'Product', display: '∏', template: '\\prod_{[i=1]}^{[n]} [x_i]', category: 'calculus' },
+        { name: 'Partial', display: 'âˆ‚/âˆ‚x', template: '\\frac{\\partial [f]}{\\partial [x]}', category: 'calculus' },
+        { name: 'Summation', display: 'âˆ‘', template: '\\sum_{[i=1]}^{[n]} [a_i]', category: 'calculus' },
+        { name: 'Product', display: 'âˆ', template: '\\prod_{[i=1]}^{[n]} [x_i]', category: 'calculus' },
         { name: 'Limit', display: 'lim', template: '\\lim_{[x \\to 0]} [f(x)]', category: 'calculus' },
 
         // Fraction Templates
         { name: 'Fraction', display: 'a/b', template: '\\frac{[a]}{[b]}', category: 'fractions' },
-        { name: 'Square Root', display: '√', template: '\\sqrt{[x]}', category: 'fractions' },
-        { name: 'Nth Root', display: 'ⁿ√', template: '\\sqrt[[n]]{[x]}', category: 'fractions' },
-        { name: 'Superscript', display: 'xⁿ', template: '[x]^{[n]}', category: 'fractions' },
-        { name: 'Subscript', display: 'xᵢ', template: '[x]_{[i]}', category: 'fractions' },
-        { name: 'Both', display: 'xᵢⁿ', template: '[x]_{[i]}^{[n]}', category: 'fractions' },
+        { name: 'Square Root', display: 'âˆš', template: '\\sqrt{[x]}', category: 'fractions' },
+        { name: 'Nth Root', display: 'â¿âˆš', template: '\\sqrt[[n]]{[x]}', category: 'fractions' },
+        { name: 'Superscript', display: 'xâ¿', template: '[x]^{[n]}', category: 'fractions' },
+        { name: 'Subscript', display: 'xáµ¢', template: '[x]_{[i]}', category: 'fractions' },
+        { name: 'Both', display: 'xáµ¢â¿', template: '[x]_{[i]}^{[n]}', category: 'fractions' },
 
         // Basic Math
-        { name: 'Times', display: '×', template: ' \\times ', category: 'basic' },
-        { name: 'Divide', display: '÷', template: ' \\div ', category: 'basic' },
-        { name: 'Plus Minus', display: '±', template: ' \\pm ', category: 'basic' },
-        { name: 'Not Equal', display: '≠', template: ' \\neq ', category: 'basic' },
-        { name: 'Less Equal', display: '≤', template: ' \\leq ', category: 'basic' },
-        { name: 'Greater Equal', display: '≥', template: ' \\geq ', category: 'basic' },
-        { name: 'Infinity', display: '∞', template: '\\infty', category: 'basic' },
+        { name: 'Times', display: 'Ã—', template: ' \\times ', category: 'basic' },
+        { name: 'Divide', display: 'Ã·', template: ' \\div ', category: 'basic' },
+        { name: 'Plus Minus', display: 'Â±', template: ' \\pm ', category: 'basic' },
+        { name: 'Not Equal', display: 'â‰ ', template: ' \\neq ', category: 'basic' },
+        { name: 'Less Equal', display: 'â‰¤', template: ' \\leq ', category: 'basic' },
+        { name: 'Greater Equal', display: 'â‰¥', template: ' \\geq ', category: 'basic' },
+        { name: 'Infinity', display: 'âˆž', template: '\\infty', category: 'basic' },
 
         // Limits & Logs
         { name: 'Log', display: 'log', template: '\\log_{[10]}[x]', category: 'limits' },
         { name: 'Natural Log', display: 'ln', template: '\\ln[x]', category: 'limits' },
-        { name: 'Limit to Infinity', display: 'lim→∞', template: '\\lim_{[x] \\to \\infty} [f(x)]', category: 'limits' },
+        { name: 'Limit to Infinity', display: 'limâ†’âˆž', template: '\\lim_{[x] \\to \\infty} [f(x)]', category: 'limits' },
     ];
 
     const categoryLabels: Record<Category, string> = {
@@ -201,7 +201,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
                     Visual Equation Builder
                 </h3>
                 <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
-                    Click templates to insert • Press Tab to jump between [placeholders]
+                    Click templates to insert â€¢ Press Tab to jump between [placeholders]
                 </p>
             </div>
 
@@ -325,105 +325,16 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
                     onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
                 />
                 <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px' }}>
-                    💡 Tip: Use [brackets] for placeholders, press Tab to navigate between them
+                    ðŸ’¡ Tip: Use [brackets] for placeholders, press Tab to navigate between them
                 </div>
             </div>
 
             {/* Live Preview */}
-            {/* Live Preview */}
-            <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
-                    Live Preview
-                </div>
-                <div style={{
-                    padding: '12px',
-                    background: '#f9fafb',
-                    borderRadius: '8px',
-                    border: '2px solid #e5e7eb',
-                    minHeight: '60px',
-                    maxHeight: '120px',
-                    overflow: 'auto',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                }}>
-                    <div
-                        style={{
-                            fontSize: '20px',
-                            maxWidth: '100%',
-                        }}
-                        dangerouslySetInnerHTML={{ __html: preview }}
-                    />
-                </div>
-            </div>
-
-            {/* Messages */}
-            {error && (
-                <div style={{
-                    padding: '10px 12px',
-                    marginBottom: '12px',
-                    background: '#fee2e2',
-                    color: '#991b1b',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    border: '1px solid #fca5a5',
-                }}>
-                    ⚠️ {error}
-                </div>
-            )}
-
-            {success && (
-                <div style={{
-                    padding: '10px 12px',
-                    marginBottom: '12px',
-                    background: '#d1fae5',
-                    color: '#065f46',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    border: '1px solid #6ee7b7',
-                }}>
-                    ✓ Equation inserted successfully!
-                </div>
-            )}
-
-            {/* Insert Button */}
-            <button
-                onClick={handleInsert}
-                disabled={isProcessing || !latex.trim()}
-                style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: isProcessing || !latex.trim()
-                        ? '#cbd5e0'
-                        : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    cursor: isProcessing || !latex.trim() ? 'not-allowed' : 'pointer',
-                    boxShadow: isProcessing || !latex.trim()
-                        ? 'none'
-                        : '0 4px 12px rgba(102, 126, 234, 0.4)',
-                    transition: 'all 0.2s',
-                }}
-                onMouseEnter={(e) => {
-                    if (!isProcessing && latex.trim()) {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.5)';
-                    }
-                }}
-                onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = isProcessing || !latex.trim()
-                        ? 'none'
-                        : '0 4px 12px rgba(102, 126, 234, 0.4)';
-                }}
-            >
-                {isProcessing ? '⏳ Processing...' : '✨ Insert Equation'}
-            </button>
-        </div>
-    );
-};
+            <div style={{
+                marginBottom: '16px',
+                padding: '16px',
+                background: '#f9fafb',
+                borderRadius: '8px',
+                border: '2px solid #e5e7eb',
+                minHeight: '80px',
+                display: 'flex',
