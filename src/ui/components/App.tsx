@@ -11,6 +11,7 @@ import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import { MathInput } from "./MathInput";
 import { MathDigitizer } from "./MathDigitizer";
 import GraphApp from "./GraphApp";
+import { Token } from "../../engines/parser/LatexParser";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 
@@ -22,6 +23,11 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
   // Cross-engine navigation state
   const [graphEquation, setGraphEquation] = useState<string>("");
   const [graphMode, setGraphMode] = useState<"data" | "equation">("data");
+
+  // Persisted state for MathDigitizer
+  const [digitizerInputText, setDigitizerInputText] = useState("");
+  const [digitizerTokens, setDigitizerTokens] = useState<Token[]>([]);
+  const [digitizerImage, setDigitizerImage] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("App mounted successfully");
@@ -115,7 +121,15 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
           {activeTab === "builder" ? (
             <MathInput addOnUISdk={addOnUISdk} onNavigateToGraph={handleNavigateToGraph} />
           ) : activeTab === "digitizer" ? (
-            <MathDigitizer addOnUISdk={addOnUISdk} onNavigateToGraph={handleNavigateToGraph} />
+            <MathDigitizer
+              addOnUISdk={addOnUISdk}
+              savedInputText={digitizerInputText}
+              setSavedInputText={setDigitizerInputText}
+              savedTokens={digitizerTokens}
+              setSavedTokens={setDigitizerTokens}
+              savedImage={digitizerImage}
+              setSavedImage={setDigitizerImage}
+            />
           ) : (
             <GraphApp
               addOnUISdk={addOnUISdk}

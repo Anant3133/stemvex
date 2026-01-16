@@ -11,18 +11,77 @@ import katex from "katex";
 
 interface MathDigitizerProps {
   addOnUISdk: AddOnSDKAPI;
-  onNavigateToGraph?: (latex: string) => void;
+  savedInputText: string;
+  setSavedInputText: (s: string) => void;
+  savedTokens: Token[];
+  setSavedTokens: (t: Token[]) => void;
+  savedImage: string | null;
+  setSavedImage: (i: string | null) => void;
 }
 
-export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavigateToGraph }) => {
-  const [inputText, setInputText] = useState("");
-  const [tokens, setTokens] = useState<Token[]>([]);
+const CustomPagination: React.FC<{
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (p: number) => void;
+}> = ({ currentPage, totalPages, onPageChange }) => (
+  <div style={{ display: "flex", gap: "4px" }}>
+    <button
+      disabled={currentPage === 1}
+      onClick={() => onPageChange(currentPage - 1)}
+      style={{
+        width: "24px",
+        height: "24px",
+        cursor: currentPage === 1 ? "not-allowed" : "pointer",
+        background: "#fff",
+        border: "1px solid #cbd5e0",
+        borderRadius: "4px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "12px"
+      }}
+    >
+      ←
+    </button>
+    <button
+      disabled={currentPage === totalPages}
+      onClick={() => onPageChange(currentPage + 1)}
+      style={{
+        width: "24px",
+        height: "24px",
+        cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+        background: "#fff",
+        border: "1px solid #cbd5e0",
+        borderRadius: "4px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "12px"
+      }}
+    >
+      →
+    </button>
+  </div>
+);
+
+export const MathDigitizer: React.FC<MathDigitizerProps> = ({
+  addOnUISdk,
+  savedInputText,
+  setSavedInputText,
+  savedTokens,
+  setSavedTokens,
+  savedImage,
+  setSavedImage
+}) => {
   const [isThinking, setIsThinking] = useState(false);
 
   // Image OCR State
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Debounce ref
+  // @ts-ignore
+  const debounceTimerRef = useRef<any>(null);
 
   // Handle Image Upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +89,7 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
+        setSavedImage(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -38,7 +97,7 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
 
   // Scan Image for Math
   const handleScanImage = async () => {
-    if (!selectedImage) return;
+    if (!savedImage) return;
 
     // @ts-ignore
     const apiKey = process.env.LLM_API_KEY;
@@ -50,7 +109,11 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
     setIsScanning(true);
     try {
       // If apiKey exists, MathOCR uses Cloud Mode. If not, Local Mode.
-      const result = await MathOCR.scanImage(selectedImage, { apiKey, apiUrl, model });
+      const result = await MathOCR.scanImage(savedImage, {
+        apiKey,
+        apiUrl,
+        model
+      });
 
       if (result.error) {
         alert(result.error);
@@ -59,8 +122,8 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
 
       // Append result to text area.
       // If cloud mode used, it returns full text, so we add newlines.
-      const newText = inputText + (inputText ? "\n\n" : "") + result.latex;
-      setInputText(newText);
+      const newText = savedInputText + (savedInputText ? "\n\n" : "") + result.latex;
+      setSavedInputText(newText);
 
       // Auto-trigger analysis
       setTimeout(() => handleAnalyze(newText), 100);
@@ -72,17 +135,40 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
   };
 
   // Process text to find math
-  const handleAnalyze = (textToAnalyze = inputText) => {
+  const handleAnalyze = (textToAnalyze = savedInputText) => {
     setIsThinking(true);
     setTimeout(() => {
       const foundTokens = LatexParser.parse(textToAnalyze);
-      setTokens(foundTokens);
+      setSavedTokens(foundTokens);
       setIsThinking(false);
     }, 500);
   };
 
+  // Debounced text change handler
+  const handleTextChange = (newText: string) => {
+    setSavedInputText(newText);
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    if (newText.trim()) {
+      debounceTimerRef.current = setTimeout(() => {
+        handleAnalyze(newText);
+      }, 800); // 800ms debounce
+    } else {
+      setSavedTokens([]);
+    }
+  };
+
   // Filter to just math tokens for the list
-  const mathTokens = tokens.filter(t => t.type !== "text");
+  const mathTokens = savedTokens.filter(t => t.type !== "text");
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 3;
+  const totalPages = Math.ceil(mathTokens.length / ITEMS_PER_PAGE);
+  const displayedTokens = mathTokens.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleInsertEquation = async (latex: string, x = 50, y = 50) => {
     const engine = new MathEngine();
@@ -124,9 +210,29 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
     }
   };
 
+  // Heuristic classifier (no API needed)
+  const classifyEquation = (latex: string): string => {
+    const s = latex.toLowerCase();
+    if (/\\?(sin|cos|tan|sec|csc|cot)\b/.test(s)) return "Trigonometry";
+    if (/\\int|\\frac\{d|\\lim|\\partial|\\nabla|'/.test(s)) return "Calculus";
+    if (/\\begin\{[pbv]?matrix|\\pmatrix|\\bmatrix/.test(s)) return "Linear Algebra";
+    if (/e\^|\\exp|\\mathrm\{e\}|\\Re|\\Im/.test(s)) return "Complex Numbers";
+    if (/\\log|\\ln/.test(s)) return "Exponential/Logarithmic";
+    if (/=/.test(s)) return "Algebra";
+    return "Mathematics";
+  };
+
   return (
     <div style={{ padding: "16px", background: "#fff" }}>
-      <h3 style={{ fontSize: "16px", margin: "0 0 4px 0", color: "#1a202c" }}>Smart Math Parser</h3>
+      <h3
+        style={{
+          fontSize: "20px",
+          margin: "0 0 4px 0",
+          color: "#1a202c"
+        }}
+      >
+        Smart Math Parser
+      </h3>
       <p style={{ fontSize: "11px", color: "#64748b", margin: "0 0 16px 0" }}>Digitize math from text or images</p>
 
       {/* Section 1: Image Scanner */}
@@ -139,10 +245,24 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
           background: "#f8fafc"
         }}
       >
-        <div style={{ fontSize: "12px", fontWeight: 600, color: "#475569", marginBottom: "8px" }}>
+        <div
+          style={{
+            fontSize: "12px",
+            fontWeight: 600,
+            color: "#475569",
+            marginBottom: "8px"
+          }}
+        >
           📷 Scan from Image
         </div>
-        <div style={{ fontSize: "10px", color: "#64748b", marginBottom: "8px", fontStyle: "italic" }}>
+        <div
+          style={{
+            fontSize: "10px",
+            color: "#64748b",
+            marginBottom: "8px",
+            fontStyle: "italic"
+          }}
+        >
           ℹ️ Uses Cloud AI (Gemini/OpenAI) for high-accuracy text & math extraction.
         </div>
 
@@ -154,7 +274,7 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
           style={{ display: "none" }}
         />
 
-        {!selectedImage ? (
+        {!savedImage ? (
           <button
             onClick={() => fileInputRef.current?.click()}
             style={{
@@ -173,7 +293,7 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <img
-              src={selectedImage}
+              src={savedImage}
               style={{
                 maxWidth: "100%",
                 maxHeight: "150px",
@@ -200,7 +320,7 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
                 {isScanning ? "Scanning..." : "Extract Math via OCR"}
               </button>
               <button
-                onClick={() => setSelectedImage(null)}
+                onClick={() => setSavedImage(null)}
                 style={{
                   padding: "8px 12px",
                   background: "#fff",
@@ -221,39 +341,19 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
 
       {/* Section 2: Text Input */}
       <div style={{ marginBottom: "16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-          <div style={{ fontSize: "12px", fontWeight: 600, color: "#475569" }}>📝 Parse Text & Formulas</div>
-          <button
-            onClick={async () => {
-              try {
-                const sandboxApi = await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(
-                  RuntimeType.documentSandbox
-                );
-                const text = await sandboxApi.getSelectedText();
-                if (text) {
-                  setInputText(text);
-                  setTimeout(() => handleAnalyze(text), 100);
-                }
-              } catch (e) {
-                console.error(e);
-              }
-            }}
-            style={{
-              fontSize: "11px",
-              padding: "4px 8px",
-              color: "#416afd",
-              background: "#eff6ff",
-              border: "1px solid #bfdbfe",
-              borderRadius: "4px",
-              cursor: "pointer"
-            }}
-          >
-            ⬇️ Import Selection
-          </button>
+        <div
+          style={{
+            fontSize: "12px",
+            fontWeight: 600,
+            color: "#475569",
+            marginBottom: "8px"
+          }}
+        >
+          📝 Parse Text & Formulas
         </div>
         <textarea
-          value={inputText}
-          onChange={e => setInputText(e.target.value)}
+          value={savedInputText}
+          onChange={e => handleTextChange(e.target.value)}
           placeholder="Paste text here (or scan image above)..."
           style={{
             width: "100%",
@@ -267,23 +367,7 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
             boxSizing: "border-box"
           }}
         />
-        <button
-          onClick={() => handleAnalyze()}
-          disabled={!inputText.trim()}
-          style={{
-            marginTop: "8px",
-            width: "100%",
-            padding: "8px",
-            background: "#416afd",
-            color: "white",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: 600
-          }}
-        >
-          {isThinking ? "Analyzing..." : "Scan for Formulas"}
-        </button>
+        {/* Button Removed per request */}
       </div>
 
       {/* Results */}
@@ -298,26 +382,29 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
             }}
           >
             <div style={{ fontSize: "12px", fontWeight: 600, color: "#64748b" }}>
-              Found {mathTokens.length} Formulas:
+              Page {currentPage} of {totalPages}
             </div>
-            <button
-              onClick={handleInsertAll}
-              style={{
-                fontSize: "11px",
-                padding: "4px 10px",
-                background: "#10b981",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: 600
-              }}
-            >
-              ⚡ Insert All
-            </button>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <CustomPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              <button
+                onClick={handleInsertAll}
+                style={{
+                  fontSize: "11px",
+                  padding: "4px 10px",
+                  background: "#10b981",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontWeight: 600
+                }}
+              >
+                ⚡ Insert All
+              </button>
+            </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {mathTokens.map((token, idx) => (
+            {displayedTokens.map((token, idx) => (
               <div
                 key={idx}
                 style={{
@@ -326,22 +413,24 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
                   borderRadius: "6px",
                   background: "#f8fafc",
                   display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between"
+                  flexDirection: "column",
+                  gap: "8px"
                 }}
               >
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: katex.renderToString(token.content, { throwOnError: false })
+                    __html: katex.renderToString(token.content, {
+                      throwOnError: false
+                    })
                   }}
-                  style={{ fontSize: "14px", maxWidth: "140px", overflowX: "auto" }}
+                  style={{ fontSize: "14px", overflowX: "auto" }}
                 />
-                <div style={{ display: "flex", gap: "4px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   <button
                     onClick={() => handleInsertEquation(token.content)}
                     style={{
                       fontSize: "11px",
-                      padding: "4px 8px",
+                      padding: "6px 10px",
                       background: "#fff",
                       border: "1px solid #cbd5e0",
                       borderRadius: "4px",
@@ -350,23 +439,15 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
                   >
                     Insert
                   </button>
-                  {onNavigateToGraph && (
-                    <button
-                      onClick={() => onNavigateToGraph(token.content)}
-                      title="Graph this equation"
-                      style={{
-                        fontSize: "11px",
-                        padding: "4px 8px",
-                        background: "#fff",
-                        border: "1px solid #416afd",
-                        borderRadius: "4px",
-                        cursor: "pointer",
-                        color: "#416afd"
-                      }}
-                    >
-                      📈
-                    </button>
-                  )}
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#475569",
+                      fontWeight: 600
+                    }}
+                  >
+                    {classifyEquation(token.content)}
+                  </div>
                 </div>
               </div>
             ))}
@@ -374,9 +455,15 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavi
         </div>
       )}
 
-      {mathTokens.length === 0 && tokens.length > 0 && (
+      {mathTokens.length === 0 && savedTokens.length > 0 && (
         <div
-          style={{ padding: "12px", background: "#fef2f2", color: "#991b1b", borderRadius: "6px", fontSize: "13px" }}
+          style={{
+            padding: "12px",
+            background: "#fef2f2",
+            color: "#991b1b",
+            borderRadius: "6px",
+            fontSize: "13px"
+          }}
         >
           No formulas found in the text. Try using $...$ delimiters.
         </div>
