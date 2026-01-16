@@ -53,7 +53,7 @@ export class MathEngine {
             container.style.color = color;
             container.style.fontFamily = 'KaTeX_Main, Times New Roman, serif';
             container.style.padding = '20px';
-            container.style.backgroundColor = '#FFFFFF'; // White background
+            container.style.backgroundColor = 'transparent'; // Transparent background
             container.style.display = 'inline-block'; // Shrink to content
             container.innerHTML = htmlString;
             document.body.appendChild(container);
@@ -80,7 +80,7 @@ export class MathEngine {
         // Use html2canvas to render the KaTeX HTML directly to canvas
         // This avoids the tainted canvas issue with SVG foreignObject
         const renderedCanvas = await html2canvas(element, {
-            backgroundColor: '#FFFFFF', // White background for visibility
+            backgroundColor: null, // Transparent background
             scale: 1.5, // Slight scale for decent quality but small size
             logging: true, // Enable logging to debug
             useCORS: true,
