@@ -39,11 +39,26 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk }) => {
     const handleScanImage = async () => {
         if (!selectedImage) return;
 
+        // @ts-ignore
+        const apiKey = process.env.LLM_API_KEY;
+        // @ts-ignore
+        const apiUrl = process.env.LLM_API_URL;
+        // @ts-ignore
+        const model = process.env.LLM_MODEL;
+
         setIsScanning(true);
         try {
-            const result = await MathOCR.scanImage(selectedImage);
-            // Append result to text area wrapped in $$ for automatic block detection
-            const newText = inputText + (inputText ? '\n\n' : '') + `$$ ${result.latex} $$`;
+            // If apiKey exists, MathOCR uses Cloud Mode. If not, Local Mode.
+            const result = await MathOCR.scanImage(selectedImage, { apiKey, apiUrl, model });
+
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
+
+            // Append result to text area. 
+            // If cloud mode used, it returns full text, so we add newlines.
+            const newText = inputText + (inputText ? '\n\n' : '') + result.latex;
             setInputText(newText);
 
             // Auto-trigger analysis
@@ -127,6 +142,9 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk }) => {
             }}>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '8px' }}>
                     📷 Scan from Image
+                </div>
+                <div style={{ fontSize: '10px', color: '#64748b', marginBottom: '8px', fontStyle: 'italic' }}>
+                    ℹ️ Uses Cloud AI (Gemini/OpenAI) for high-accuracy text & math extraction.
                 </div>
 
                 <input
