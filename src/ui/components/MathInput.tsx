@@ -76,7 +76,10 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGr
     try {
       const mathResult = await getMathEngine().convertToPNG(cleanedLatex);
       const arrayBuffer = await mathResult.imageData.arrayBuffer();
-      const sandboxApi = await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(RuntimeType.documentSandbox);
+      const sandboxApi =
+        await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(
+          RuntimeType.documentSandbox,
+        );
 
       await sandboxApi.insertMath({
         imageData: arrayBuffer,
@@ -87,7 +90,9 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGr
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to insert equation");
+      setError(
+        err instanceof Error ? err.message : "Failed to insert equation",
+      );
       console.error("Insert math error:", err);
     } finally {
       setIsProcessing(false);
@@ -261,6 +266,181 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGr
         </p>
       </div>
 
+      {/* Messages */}
+      {error && (
+        <div
+          style={{
+            padding: "10px 12px",
+            marginBottom: "12px",
+            background: "#fee2e2",
+            color: "#991b1b",
+            borderRadius: "6px",
+            fontSize: "12px",
+            fontWeight: 500,
+            border: "1px solid #fca5a5",
+          }}
+        >
+          ⚠️ {error}
+        </div>
+      )}
+
+      {success && (
+        <div
+          style={{
+            padding: "10px 12px",
+            marginBottom: "12px",
+            background: "#d1fae5",
+            color: "#065f46",
+            borderRadius: "6px",
+            fontSize: "12px",
+            fontWeight: 500,
+            border: "1px solid #6ee7b7",
+          }}
+        >
+          ✓ Equation inserted successfully!
+        </div>
+      )}
+
+      {/* Insert Button */}
+      <button
+        onClick={handleInsert}
+        disabled={isProcessing || !latex.trim()}
+        style={{
+          width: "100%",
+          padding: "10px 24px",
+          background: isProcessing || !latex.trim() ? "#cbd5e0" : "#416afd",
+          color: "white",
+          border: "none",
+          borderRadius: "9999px",
+          fontSize: "15px",
+          fontWeight: 600,
+          cursor: isProcessing || !latex.trim() ? "not-allowed" : "pointer",
+          transition: "all 0.2s",
+          marginBottom: "16px",
+        }}
+        onMouseEnter={(e) => {
+          if (!isProcessing && latex.trim()) {
+            e.currentTarget.style.background = "#2546c7"; // Darker shade for hover
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background =
+            isProcessing || !latex.trim() ? "#cbd5e0" : "#416afd";
+        }}
+      >
+        {isProcessing ? "Processing..." : "Insert Equation"}
+      </button>
+
+      {/* Live Preview */}
+      <div style={{ marginBottom: "16px" }}>
+        <div
+          style={{
+            fontSize: "12px",
+            fontWeight: 600,
+            color: "#374151",
+            marginBottom: "6px",
+          }}
+        >
+          Live Preview
+        </div>
+        <div
+          style={{
+            padding: "12px",
+            background: "#f9fafb",
+            borderRadius: "8px",
+            border: "2px solid #e5e7eb",
+            minHeight: "60px",
+            maxHeight: "120px",
+            overflow: "auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "20px",
+              maxWidth: "100%",
+            }}
+            dangerouslySetInnerHTML={{ __html: preview }}
+          />
+        </div>
+      </div>
+
+      {/* LaTeX Input with Tab Navigation */}
+      <div style={{ marginBottom: "12px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "6px",
+          }}
+        >
+          <label
+            style={{
+              fontSize: "12px",
+              fontWeight: 600,
+              color: "#374151",
+            }}
+          >
+            LaTeX Code
+          </label>
+          <button
+            onClick={() => setLatex("")}
+            style={{
+              padding: "2px 8px",
+              fontSize: "11px",
+              color: "#64748b",
+              background: "transparent",
+              border: "1px solid #e2e8f0",
+              borderRadius: "4px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#ef4444";
+              e.currentTarget.style.borderColor = "#fca5a5";
+              e.currentTarget.style.background = "#fef2f2";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "#64748b";
+              e.currentTarget.style.borderColor = "#e2e8f0";
+              e.currentTarget.style.background = "transparent";
+            }}
+            title="Clear content"
+          >
+            Clear
+          </button>
+        </div>
+        <textarea
+          ref={textareaRef}
+          value={latex}
+          onChange={(e) => setLatex(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Click templates above or type LaTeX directly"
+          style={{
+            width: "100%",
+            minHeight: "80px",
+            padding: "10px",
+            fontSize: "13px",
+            fontFamily: '"Consolas", "Monaco", monospace',
+            border: "2px solid #e2e8f0",
+            borderRadius: "6px",
+            resize: "vertical",
+            boxSizing: "border-box",
+            background: "#ffffff",
+            outline: "none",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = "#416afd")}
+          onBlur={(e) => (e.target.style.borderColor = "#e2e8f0")}
+        />
+        <div style={{ fontSize: "10px", color: "#64748b", marginTop: "4px" }}>
+          💡 Tip: Use [brackets] for placeholders, press Tab to navigate between
+          them
+        </div>
+      </div>
+
       {/* Category Selector */}
       <div style={{ marginBottom: "12px" }}>
         <label
@@ -375,226 +555,6 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGr
             </button>
           ))}
         </div>
-      </div>
-
-      {/* LaTeX Input with Tab Navigation */}
-      <div style={{ marginBottom: "12px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "6px"
-          }}
-        >
-          <label
-            style={{
-              fontSize: "12px",
-              fontWeight: 600,
-              color: "#374151"
-            }}
-          >
-            LaTeX Code
-          </label>
-          <button
-            onClick={() => setLatex("")}
-            style={{
-              padding: "2px 8px",
-              fontSize: "11px",
-              color: "#64748b",
-              background: "transparent",
-              border: "1px solid #e2e8f0",
-              borderRadius: "4px",
-              cursor: "pointer",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = "#ef4444";
-              e.currentTarget.style.borderColor = "#fca5a5";
-              e.currentTarget.style.background = "#fef2f2";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = "#64748b";
-              e.currentTarget.style.borderColor = "#e2e8f0";
-              e.currentTarget.style.background = "transparent";
-            }}
-            title="Clear content"
-          >
-            Clear
-          </button>
-        </div>
-        <textarea
-          ref={textareaRef}
-          value={latex}
-          onChange={e => setLatex(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Click templates above or type LaTeX directly"
-          style={{
-            width: "100%",
-            minHeight: "80px",
-            padding: "10px",
-            fontSize: "13px",
-            fontFamily: '"Consolas", "Monaco", monospace',
-            border: "2px solid #e2e8f0",
-            borderRadius: "6px",
-            resize: "vertical",
-            boxSizing: "border-box",
-            background: "#ffffff",
-            outline: "none"
-          }}
-          onFocus={e => (e.target.style.borderColor = "#416afd")}
-          onBlur={e => (e.target.style.borderColor = "#e2e8f0")}
-        />
-        <div style={{ fontSize: "10px", color: "#64748b", marginTop: "4px" }}>
-          💡 Tip: Use [brackets] for placeholders, press Tab to navigate between them
-        </div>
-      </div>
-
-      {/* Live Preview */}
-      {/* Live Preview */}
-      <div style={{ marginBottom: "16px" }}>
-        <div
-          style={{
-            fontSize: "12px",
-            fontWeight: 600,
-            color: "#374151",
-            marginBottom: "6px"
-          }}
-        >
-          Live Preview
-        </div>
-        <div
-          style={{
-            padding: "12px",
-            background: "#f9fafb",
-            borderRadius: "8px",
-            border: "2px solid #e5e7eb",
-            minHeight: "60px",
-            maxHeight: "120px",
-            overflow: "auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center"
-          }}
-        >
-          <div
-            style={{
-              fontSize: "20px",
-              maxWidth: "100%"
-            }}
-            dangerouslySetInnerHTML={{ __html: preview }}
-          />
-        </div>
-      </div>
-
-      {/* Messages */}
-      {error && (
-        <div
-          style={{
-            padding: "10px 12px",
-            marginBottom: "12px",
-            background: "#fee2e2",
-            color: "#991b1b",
-            borderRadius: "6px",
-            fontSize: "12px",
-            fontWeight: 500,
-            border: "1px solid #fca5a5"
-          }}
-        >
-          ⚠️ {error}
-        </div>
-      )}
-
-      {success && (
-        <div
-          style={{
-            padding: "10px 12px",
-            marginBottom: "12px",
-            background: "#d1fae5",
-            color: "#065f46",
-            borderRadius: "6px",
-            fontSize: "12px",
-            fontWeight: 500,
-            border: "1px solid #6ee7b7"
-          }}
-        >
-          ✓ Equation inserted successfully!
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        {/* Insert Button */}
-        <button
-          onClick={handleInsert}
-          disabled={isProcessing || !latex.trim()}
-          style={{
-            width: "100%",
-            padding: "10px 24px",
-            background: isProcessing || !latex.trim() ? "#cbd5e0" : "#416afd",
-            color: "white",
-            border: "none",
-            borderRadius: "9999px",
-            fontSize: "15px",
-            fontWeight: 600,
-            cursor: isProcessing || !latex.trim() ? "not-allowed" : "pointer",
-            transition: "all 0.2s"
-          }}
-          onMouseEnter={e => {
-            if (!isProcessing && latex.trim()) {
-              e.currentTarget.style.background = "#2546c7";
-            }
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = isProcessing || !latex.trim() ? "#cbd5e0" : "#416afd";
-          }}
-        >
-          {isProcessing ? "Processing..." : "Insert Equation"}
-        </button>
-
-        {/* Graph This Equation Button */}
-        {onNavigateToGraph && (
-          <button
-            onClick={() => {
-              let cleanedLatex = latex.trim().replace(/^\$+|\$+$/g, "");
-              cleanedLatex = cleanedLatex.replace(/\[([^\]]+)\]/g, "$1");
-              onNavigateToGraph(cleanedLatex);
-            }}
-            disabled={!latex.trim()}
-            style={{
-              width: "100%",
-              padding: "10px 24px",
-              background: !latex.trim() ? "#e2e8f0" : "#ffffff",
-              color: !latex.trim() ? "#94a3b8" : "#416afd",
-              border: "2px solid",
-              borderColor: !latex.trim() ? "#e2e8f0" : "#416afd",
-              borderRadius: "9999px",
-              fontSize: "15px",
-              fontWeight: 600,
-              cursor: !latex.trim() ? "not-allowed" : "pointer",
-              transition: "all 0.2s",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px"
-            }}
-            onMouseEnter={e => {
-              if (latex.trim()) {
-                e.currentTarget.style.background = "#416afd";
-                e.currentTarget.style.color = "#ffffff";
-              }
-            }}
-            onMouseLeave={e => {
-              if (latex.trim()) {
-                e.currentTarget.style.background = "#ffffff";
-                e.currentTarget.style.color = "#416afd";
-              }
-            }}
-          >
-            <span>📈</span>
-            <span>Graph This Equation</span>
-          </button>
-        )}
       </div>
     </div>
   );
