@@ -11,7 +11,7 @@ import pandas as pd
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
-from plot_schema import AxesConfig, MappingConfig, StyleConfig
+from plot_schema import AxesConfig, MappingConfig, StyleConfig, FigureConfig, FontConfig
 
 from .base import BaseRenderer
 
@@ -28,6 +28,8 @@ class HistogramRenderer(BaseRenderer):
         mapping: MappingConfig,
         style: StyleConfig | None = None,
         axes: AxesConfig | None = None,
+        figure: FigureConfig | None = None,
+        font: FontConfig | None = None,
     ) -> "Figure":
         """
         Render a histogram.
@@ -37,11 +39,17 @@ class HistogramRenderer(BaseRenderer):
             mapping: Column-to-aesthetic mappings (x, hue)
             style: Visual styling options
             axes: Axes configuration
+            figure: Figure configuration
+            font: Font configuration
             
         Returns:
             Matplotlib Figure with the histogram
         """
-        fig, ax = self.create_figure()
+        # Apply font configuration first
+        self.apply_font_config(font)
+        
+        # Create figure
+        fig, ax = self.create_figure(figure=figure)
         
         x_col = mapping.x
         hue_col = mapping.hue
@@ -56,7 +64,7 @@ class HistogramRenderer(BaseRenderer):
         self.apply_legend(ax, axes, has_hue=hue_col is not None)
         
         # Finalize
-        self.finalize_figure(fig)
+        self.finalize_figure(fig, figure)
         
         return fig
     

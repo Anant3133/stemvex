@@ -25,7 +25,8 @@
         "html2canvas": "^1.4.1",
         "katex": "^0.16.27",
         "react": "18.2.0",
-        "react-dom": "18.2.0"
+        "react-dom": "18.2.0",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "@adobe/ccweb-add-on-scripts": "^3.6.0",

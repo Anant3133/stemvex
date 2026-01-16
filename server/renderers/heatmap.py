@@ -11,7 +11,7 @@ import pandas as pd
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
-from plot_schema import AxesConfig, MappingConfig, StyleConfig
+from plot_schema import AxesConfig, MappingConfig, StyleConfig, FigureConfig, FontConfig
 
 from .base import BaseRenderer
 
@@ -25,6 +25,8 @@ class HeatmapRenderer(BaseRenderer):
         mapping: MappingConfig,
         style: StyleConfig | None = None,
         axes: AxesConfig | None = None,
+        figure: FigureConfig | None = None,
+        font: FontConfig | None = None,
     ) -> "Figure":
         """
         Render a heatmap.
@@ -42,11 +44,17 @@ class HeatmapRenderer(BaseRenderer):
             mapping: Column-to-aesthetic mappings
             style: Visual styling options
             axes: Axes configuration
+            figure: Figure configuration
+            font: Font configuration
             
         Returns:
             Matplotlib Figure with the heatmap
         """
-        fig, ax = self.create_figure()
+        # Apply font configuration first
+        self.apply_font_config(font)
+        
+        # Create figure
+        fig, ax = self.create_figure(figure=figure)
         
         x_col = mapping.x
         y_col = mapping.y
@@ -83,7 +91,7 @@ class HeatmapRenderer(BaseRenderer):
         self.apply_axes_config(ax, axes)
         
         # Finalize
-        self.finalize_figure(fig)
+        self.finalize_figure(fig, figure)
         
         return fig
     

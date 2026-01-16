@@ -11,7 +11,7 @@ import pandas as pd
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
-from plot_schema import AxesConfig, MappingConfig, StyleConfig
+from plot_schema import AxesConfig, MappingConfig, StyleConfig, FigureConfig, FontConfig
 
 from .base import BaseRenderer
 
@@ -25,6 +25,8 @@ class ScatterRenderer(BaseRenderer):
         mapping: MappingConfig,
         style: StyleConfig | None = None,
         axes: AxesConfig | None = None,
+        figure: FigureConfig | None = None,
+        font: FontConfig | None = None,
     ) -> "Figure":
         """
         Render a scatter plot.
@@ -34,11 +36,17 @@ class ScatterRenderer(BaseRenderer):
             mapping: Column-to-aesthetic mappings (x, y, hue, size)
             style: Visual styling options
             axes: Axes configuration
+            figure: Figure configuration
+            font: Font configuration
             
         Returns:
             Matplotlib Figure with the scatter plot
         """
-        fig, ax = self.create_figure()
+        # Apply font configuration first
+        self.apply_font_config(font)
+        
+        # Create figure
+        fig, ax = self.create_figure(figure=figure)
         
         x_col = mapping.x
         y_col = mapping.y
@@ -58,7 +66,7 @@ class ScatterRenderer(BaseRenderer):
         self.apply_legend(ax, axes, has_hue=hue_col is not None)
         
         # Finalize
-        self.finalize_figure(fig)
+        self.finalize_figure(fig, figure)
         
         return fig
     
@@ -79,6 +87,11 @@ class ScatterRenderer(BaseRenderer):
         if "alpha" not in style_kwargs:
             style_kwargs["alpha"] = 0.7
         
+        # Get marker size from style or default
+        default_size = 50
+        if style is not None and style.marker_size is not None:
+            default_size = style.marker_size
+        
         # Handle size mapping
         sizes = None
         if size_col is not None:
@@ -91,12 +104,13 @@ class ScatterRenderer(BaseRenderer):
             ax.scatter(
                 df[x_col],
                 df[y_col],
-                s=sizes if sizes is not None else 50,
+                s=sizes if sizes is not None else default_size,
                 **style_kwargs,
             )
         else:
             # Multiple scatters by hue
             style_kwargs.pop("color", None)
+            style_kwargs.pop("s", None)  # Remove size from kwargs
             
             for label, group in df.groupby(hue_col):
                 group_sizes = None
@@ -106,7 +120,7 @@ class ScatterRenderer(BaseRenderer):
                 ax.scatter(
                     group[x_col],
                     group[y_col],
-                    s=group_sizes if group_sizes is not None else 50,
+                    s=group_sizes if group_sizes is not None else default_size,
                     label=str(label),
                     **style_kwargs,
                 )

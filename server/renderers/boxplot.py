@@ -11,7 +11,7 @@ import pandas as pd
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
-from plot_schema import AxesConfig, MappingConfig, StyleConfig
+from plot_schema import AxesConfig, MappingConfig, StyleConfig, FigureConfig, FontConfig
 
 from .base import BaseRenderer
 
@@ -25,6 +25,8 @@ class BoxplotRenderer(BaseRenderer):
         mapping: MappingConfig,
         style: StyleConfig | None = None,
         axes: AxesConfig | None = None,
+        figure: FigureConfig | None = None,
+        font: FontConfig | None = None,
     ) -> "Figure":
         """
         Render a box plot.
@@ -34,11 +36,17 @@ class BoxplotRenderer(BaseRenderer):
             mapping: Column-to-aesthetic mappings (x, y, hue)
             style: Visual styling options
             axes: Axes configuration
+            figure: Figure configuration
+            font: Font configuration
             
         Returns:
             Matplotlib Figure with the box plot
         """
-        fig, ax = self.create_figure()
+        # Apply font configuration first
+        self.apply_font_config(font)
+        
+        # Create figure
+        fig, ax = self.create_figure(figure=figure)
         
         x_col = mapping.x
         y_col = mapping.y
@@ -56,12 +64,13 @@ class BoxplotRenderer(BaseRenderer):
         self.apply_axes_config(ax, axes)
         self.apply_legend(ax, axes, has_hue=hue_col is not None)
         
-        # Rotate x-axis labels if they might overlap
-        if len(df[x_col].unique()) > 5:
-            ax.tick_params(axis="x", rotation=45)
+        # Rotate x-axis labels if they might overlap (unless tick_config handles it)
+        if axes is None or axes.tick_config is None:
+            if len(df[x_col].unique()) > 5:
+                ax.tick_params(axis="x", rotation=45)
         
         # Finalize
-        self.finalize_figure(fig)
+        self.finalize_figure(fig, figure)
         
         return fig
     

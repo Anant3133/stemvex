@@ -8,7 +8,10 @@
 // Server URL - update this for production
 const PLOT_SERVER_URL = "http://localhost:8000";
 
-// Type definitions
+// =============================================================================
+// Type Definitions
+// =============================================================================
+
 export type PlotType =
   | "line"
   | "scatter"
@@ -17,17 +20,35 @@ export type PlotType =
   | "boxplot"
   | "heatmap";
 export type PlotLibrary = "matplotlib" | "seaborn";
+export type FontFamily = "sans-serif" | "serif" | "monospace";
+export type FontWeight = "normal" | "bold";
+export type LineStyle = "solid" | "dashed" | "dotted" | "dashdot";
+export type GridAxis = "both" | "x" | "y";
+export type LegendPosition =
+  | "best"
+  | "upper right"
+  | "upper left"
+  | "lower right"
+  | "lower left"
+  | "center"
+  | "center right"
+  | "center left"
+  | "upper center"
+  | "lower center";
 
+// Plot Configuration
 export interface PlotConfig {
   type: PlotType;
   library: PlotLibrary;
 }
 
+// Data Configuration
 export interface DataConfig {
   columns: string[];
   rows: (string | number)[][];
 }
 
+// Mapping Configuration
 export interface MappingConfig {
   x: string;
   y?: string;
@@ -35,30 +56,125 @@ export interface MappingConfig {
   size?: string;
 }
 
+// Font Configuration
+export interface FontConfig {
+  family?: FontFamily;
+  size_multiplier?: number;
+}
+
+// Title Configuration
+export interface TitleConfig {
+  text?: string;
+  font_size?: number;
+  font_weight?: FontWeight;
+  color?: string;
+}
+
+// Label Configuration
+export interface LabelConfig {
+  text?: string;
+  font_size?: number;
+  color?: string;
+}
+
+// Tick Configuration
+export interface TickConfig {
+  font_size?: number;
+  rotation?: number;
+  color?: string;
+}
+
+// Grid Configuration
+export interface GridConfig {
+  show?: boolean;
+  style?: LineStyle;
+  color?: string;
+  alpha?: number;
+  line_width?: number;
+  axis?: GridAxis;
+}
+
+// Legend Configuration
+export interface LegendConfig {
+  show?: boolean;
+  position?: LegendPosition;
+  font_size?: number;
+  frame?: boolean;
+  frame_alpha?: number;
+}
+
+// Figure Configuration
+export interface FigureConfig {
+  width?: number;
+  height?: number;
+  dpi?: number;
+  background?: string;
+  transparent?: boolean;
+}
+
+// Spine Configuration
+export interface SpineConfig {
+  top?: boolean;
+  right?: boolean;
+  bottom?: boolean;
+  left?: boolean;
+  color?: string;
+  width?: number;
+}
+
+// Style Configuration (Enhanced)
 export interface StyleConfig {
   color?: string;
   palette?: string;
   alpha?: number;
   linewidth?: number;
+  linestyle?: LineStyle;
+  marker?: string;
+  marker_size?: number;
+  bar_width?: number;
+  edgecolor?: string;
+  edgewidth?: number;
 }
 
+// Axes Configuration (Enhanced)
 export interface AxesConfig {
+  // Simple legacy fields
   title?: string;
   x_label?: string;
   y_label?: string;
+
+  // Enhanced configs
+  title_config?: TitleConfig;
+  x_label_config?: LabelConfig;
+  y_label_config?: LabelConfig;
+  tick_config?: TickConfig;
+
+  // Scales & Limits
   x_scale?: "linear" | "log";
   y_scale?: "linear" | "log";
-  grid?: boolean;
+  x_min?: number;
+  x_max?: number;
+  y_min?: number;
+  y_max?: number;
+
+  // Grid & Spines
+  grid?: boolean | GridConfig;
+  legend?: boolean | LegendConfig;
+  spines?: SpineConfig;
 }
 
+// Complete Plot Request
 export interface PlotRequest {
   plot: PlotConfig;
   data: DataConfig;
   mapping: MappingConfig;
   style?: StyleConfig;
   axes?: AxesConfig;
+  figure?: FigureConfig;
+  font?: FontConfig;
 }
 
+// Response Types
 export interface PlotResponse {
   svg: string; // Actually base64 PNG now
   width: number;
@@ -70,6 +186,82 @@ export interface HealthResponse {
   version: string;
   backend: string;
 }
+
+// =============================================================================
+// Default Customization Settings
+// =============================================================================
+
+export const DEFAULT_CUSTOMIZATION = {
+  figure: {
+    width: 800,
+    height: 500,
+    dpi: 150,
+    background: "#ffffff",
+    transparent: false,
+  } as FigureConfig,
+
+  font: {
+    family: "sans-serif" as FontFamily,
+    size_multiplier: 1.0,
+  } as FontConfig,
+
+  title: {
+    font_size: 14,
+    font_weight: "bold" as FontWeight,
+    color: "#000000",
+  } as TitleConfig,
+
+  grid: {
+    show: false,
+    style: "dashed" as LineStyle,
+    color: "#cccccc",
+    alpha: 0.7,
+    line_width: 0.5,
+    axis: "both" as GridAxis,
+  } as GridConfig,
+
+  legend: {
+    show: true,
+    position: "best" as LegendPosition,
+    font_size: 10,
+    frame: true,
+    frame_alpha: 0.9,
+  } as LegendConfig,
+
+  spines: {
+    top: true,
+    right: true,
+    bottom: true,
+    left: true,
+    color: "#000000",
+    width: 1.0,
+  } as SpineConfig,
+
+  style: {
+    alpha: 1.0,
+    linewidth: 2.0,
+    marker_size: 50,
+    bar_width: 0.8,
+  } as StyleConfig,
+};
+
+// Available color palettes
+export const COLOR_PALETTES = [
+  { value: "viridis", label: "Viridis", description: "Perceptually uniform" },
+  { value: "plasma", label: "Plasma", description: "Warm gradient" },
+  { value: "Set1", label: "Set1", description: "Bold colors" },
+  { value: "Set2", label: "Set2", description: "Pastel colors" },
+  { value: "husl", label: "HUSL", description: "Evenly spaced hues" },
+  { value: "pastel", label: "Pastel", description: "Light, muted" },
+  { value: "dark", label: "Dark", description: "Dark, rich" },
+  { value: "muted", label: "Muted", description: "Subdued colors" },
+  { value: "deep", label: "Deep", description: "Deep, saturated" },
+  { value: "bright", label: "Bright", description: "Vivid, high contrast" },
+];
+
+// =============================================================================
+// API Functions
+// =============================================================================
 
 /**
  * Check if the plot server is healthy

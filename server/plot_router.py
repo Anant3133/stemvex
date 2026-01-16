@@ -19,6 +19,8 @@ from plot_schema import (
     PlotRequest,
     PlotResponse,
     StyleConfig,
+    FigureConfig,
+    FontConfig,
 )
 from renderers import get_renderer, list_supported_plot_types
 
@@ -81,12 +83,13 @@ def validate_mapping(df: pd.DataFrame, mapping: MappingConfig, plot_type: str) -
         )
 
 
-def render_figure_to_png(fig) -> tuple[bytes, int, int]:
+def render_figure_to_png(fig, figure_config: FigureConfig | None = None) -> tuple[bytes, int, int]:
     """
     Render a matplotlib Figure to PNG bytes.
     
     Args:
         fig: Matplotlib Figure object
+        figure_config: Figure configuration for DPI and transparency
         
     Returns:
         Tuple of (png_bytes, width_px, height_px)
@@ -95,14 +98,22 @@ def render_figure_to_png(fig) -> tuple[bytes, int, int]:
     
     try:
         buffer = BytesIO()
+        
+        # Get DPI from config or use default
         dpi = 150
+        transparent = False
+        if figure_config is not None:
+            dpi = figure_config.dpi
+            transparent = figure_config.transparent
+        
         fig.savefig(
             buffer,
             format="png",
             dpi=dpi,
             bbox_inches="tight",
-            facecolor="white",
+            facecolor=fig.get_facecolor() if not transparent else 'none',
             edgecolor="none",
+            transparent=transparent,
         )
         buffer.seek(0)
         png_bytes = buffer.getvalue()
@@ -147,6 +158,8 @@ async def render_plot(request: PlotRequest) -> PlotResponse:
         # Prepare config objects (use defaults if None)
         style = request.style or StyleConfig()
         axes = request.axes or AxesConfig()
+        figure = request.figure
+        font = request.font
         
         # Render the plot
         fig = renderer.render(
@@ -154,10 +167,12 @@ async def render_plot(request: PlotRequest) -> PlotResponse:
             mapping=request.mapping,
             style=style,
             axes=axes,
+            figure=figure,
+            font=font,
         )
         
         # Convert to PNG
-        png_bytes, width, height = render_figure_to_png(fig)
+        png_bytes, width, height = render_figure_to_png(fig, figure)
         
         # Encode as base64
         png_base64 = base64.b64encode(png_bytes).decode("utf-8")
@@ -206,6 +221,8 @@ async def render_plot_png(request: PlotRequest) -> Response:
         # Prepare config objects
         style = request.style or StyleConfig()
         axes = request.axes or AxesConfig()
+        figure = request.figure
+        font = request.font
         
         # Render the plot
         fig = renderer.render(
@@ -213,10 +230,12 @@ async def render_plot_png(request: PlotRequest) -> Response:
             mapping=request.mapping,
             style=style,
             axes=axes,
+            figure=figure,
+            font=font,
         )
         
         # Convert to PNG
-        png_bytes, width, height = render_figure_to_png(fig)
+        png_bytes, width, height = render_figure_to_png(fig, figure)
         
         return Response(
             content=png_bytes,

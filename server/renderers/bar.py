@@ -11,7 +11,7 @@ import pandas as pd
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
-from plot_schema import AxesConfig, MappingConfig, StyleConfig
+from plot_schema import AxesConfig, MappingConfig, StyleConfig, FigureConfig, FontConfig
 
 from .base import BaseRenderer
 
@@ -25,6 +25,8 @@ class BarRenderer(BaseRenderer):
         mapping: MappingConfig,
         style: StyleConfig | None = None,
         axes: AxesConfig | None = None,
+        figure: FigureConfig | None = None,
+        font: FontConfig | None = None,
     ) -> "Figure":
         """
         Render a bar plot.
@@ -34,11 +36,17 @@ class BarRenderer(BaseRenderer):
             mapping: Column-to-aesthetic mappings (x, y, hue)
             style: Visual styling options
             axes: Axes configuration
+            figure: Figure configuration
+            font: Font configuration
             
         Returns:
             Matplotlib Figure with the bar plot
         """
-        fig, ax = self.create_figure()
+        # Apply font configuration first
+        self.apply_font_config(font)
+        
+        # Create figure
+        fig, ax = self.create_figure(figure=figure)
         
         x_col = mapping.x
         y_col = mapping.y
@@ -56,12 +64,13 @@ class BarRenderer(BaseRenderer):
         self.apply_axes_config(ax, axes)
         self.apply_legend(ax, axes, has_hue=hue_col is not None)
         
-        # Rotate x-axis labels if they might overlap
-        if len(df[x_col].unique()) > 5:
-            ax.tick_params(axis="x", rotation=45)
+        # Rotate x-axis labels if they might overlap (unless tick_config handles it)
+        if axes is None or axes.tick_config is None:
+            if len(df[x_col].unique()) > 5:
+                ax.tick_params(axis="x", rotation=45)
         
         # Finalize
-        self.finalize_figure(fig)
+        self.finalize_figure(fig, figure)
         
         return fig
     
@@ -85,6 +94,11 @@ class BarRenderer(BaseRenderer):
         if "linewidth" not in style_kwargs:
             style_kwargs["linewidth"] = 0.5
         
+        # Get bar width from style
+        bar_width_factor = 0.8
+        if style is not None and style.bar_width is not None:
+            bar_width_factor = style.bar_width
+        
         if hue_col is None:
             # Simple bar plot
             # Aggregate if there are duplicate x values
@@ -94,6 +108,7 @@ class BarRenderer(BaseRenderer):
                 range(len(aggregated)),
                 aggregated.values,
                 tick_label=aggregated.index.astype(str),
+                width=bar_width_factor,
                 **style_kwargs,
             )
         else:
@@ -106,7 +121,7 @@ class BarRenderer(BaseRenderer):
             n_hues = len(hue_values)
             n_x = len(x_values)
             
-            bar_width = 0.8 / n_hues
+            bar_width = bar_width_factor / n_hues
             x_positions = np.arange(n_x)
             
             for i, hue_val in enumerate(hue_values):

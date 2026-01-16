@@ -5,15 +5,16 @@ import "@spectrum-web-components/theme/express/theme-light.js";
 
 // To learn more about using "swc-react" visit:
 // https://opensource.adobe.com/spectrum-web-components/using-swc-react/
-import { Button } from "@swc-react/button";
 import { Theme } from "@swc-react/theme";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import { MathInput } from "./MathInput";
 import { MathDigitizer } from "./MathDigitizer";
 import GraphApp from "./GraphApp";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
+
+type TabType = "builder" | "digitizer" | "graphs";
 
 const App = ({
   addOnUISdk,
@@ -22,14 +23,32 @@ const App = ({
   addOnUISdk: AddOnSDKAPI;
   sandboxProxy: DocumentSandboxApi;
 }) => {
-  const [activeTab, setActiveTab] = useState<
-    "builder" | "digitizer" | "graphs"
-  >("builder");
+  const [activeTab, setActiveTab] = useState<TabType>("builder");
+
+  // Cross-engine navigation state
+  const [graphEquation, setGraphEquation] = useState<string>("");
+  const [graphMode, setGraphMode] = useState<"data" | "equation">("data");
 
   useEffect(() => {
     console.log("App mounted successfully");
     console.log("addOnUISdk:", addOnUISdk);
     console.log("sandboxProxy:", sandboxProxy);
+  }, []);
+
+  // Handler for navigating to graph engine with an equation
+  const handleNavigateToGraph = useCallback((latex: string) => {
+    console.log("Navigating to Graph with equation:", latex);
+    setGraphEquation(latex);
+    setGraphMode("equation");
+    setActiveTab("graphs");
+  }, []);
+
+  // Clear prefilled equation when manually switching tabs
+  const handleTabChange = useCallback((tab: TabType) => {
+    if (tab !== "graphs") {
+      // Don't clear equation when switching away - user might come back
+    }
+    setActiveTab(tab);
   }, []);
 
   return (
@@ -53,7 +72,7 @@ const App = ({
           }}
         >
           <button
-            onClick={() => setActiveTab("builder")}
+            onClick={() => handleTabChange("builder")}
             style={{
               flex: 1,
               padding: "8px",
@@ -69,7 +88,7 @@ const App = ({
             Equation
           </button>
           <button
-            onClick={() => setActiveTab("digitizer")}
+            onClick={() => handleTabChange("digitizer")}
             style={{
               flex: 1,
               padding: "8px",
@@ -85,7 +104,7 @@ const App = ({
             Digitizer
           </button>
           <button
-            onClick={() => setActiveTab("graphs")}
+            onClick={() => handleTabChange("graphs")}
             style={{
               flex: 1,
               padding: "8px",
@@ -105,11 +124,26 @@ const App = ({
         {/* Content */}
         <div>
           {activeTab === "builder" ? (
-            <MathInput addOnUISdk={addOnUISdk} />
+            <MathInput
+              addOnUISdk={addOnUISdk}
+              onNavigateToGraph={handleNavigateToGraph}
+            />
           ) : activeTab === "digitizer" ? (
-            <MathDigitizer addOnUISdk={addOnUISdk} />
+            <MathDigitizer
+              addOnUISdk={addOnUISdk}
+              onNavigateToGraph={handleNavigateToGraph}
+            />
           ) : (
-            <GraphApp addOnUISdk={addOnUISdk} />
+            <GraphApp
+              addOnUISdk={addOnUISdk}
+              prefillEquation={graphEquation}
+              initialMode={graphMode}
+              onEquationUsed={() => {
+                // Clear prefill after it's been used
+                setGraphEquation("");
+                setGraphMode("data");
+              }}
+            />
           )}
         </div>
       </div>

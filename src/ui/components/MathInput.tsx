@@ -13,6 +13,7 @@ import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 
 interface MathInputProps {
   addOnUISdk: AddOnSDKAPI;
+  onNavigateToGraph?: (latex: string) => void;
 }
 
 interface Template {
@@ -32,7 +33,7 @@ type Category =
   | "script"
   | "limits";
 
-export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
+export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGraph }) => {
   const [latex, setLatex] = useState("E = mc^{2}");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,100 +164,100 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
   // Template definitions with placeholders
   const templates: Template[] = [
     // Calculus Templates
-        { name: 'Integral', display: '∫', template: '\\int [f(x)] \\, dx', category: 'calculus' },
-        { name: 'Definite Integral', display: '∫ᵃᵇ', template: '\\int_{[a]}^{[b]} [f(x)] \\, dx', category: 'calculus' },
-        { name: 'Double Integral', display: '∬', template: '\\iint_{[D]} [f(x,y)] \\, dA', category: 'calculus' },
-        { name: 'Derivative', display: 'd/dx', template: '\\frac{d}{dx}[f(x)]', category: 'calculus' },
-        { name: 'Partial', display: '∂/∂x', template: '\\frac{\\partial [f]}{\\partial [x]}', category: 'calculus' },
-        { name: 'Summation', display: '∑', template: '\\sum_{[i=1]}^{[n]} [a_i]', category: 'calculus' },
-        { name: 'Product', display: '∏', template: '\\prod_{[i=1]}^{[n]} [x_i]', category: 'calculus' },
-        { name: 'Limit', display: 'lim', template: '\\lim_{[x \\to 0]} [f(x)]', category: 'calculus' },
+    { name: 'Integral', display: '∫', template: '\\int [f(x)] \\, dx', category: 'calculus' },
+    { name: 'Definite Integral', display: '∫ᵃᵇ', template: '\\int_{[a]}^{[b]} [f(x)] \\, dx', category: 'calculus' },
+    { name: 'Double Integral', display: '∬', template: '\\iint_{[D]} [f(x,y)] \\, dA', category: 'calculus' },
+    { name: 'Derivative', display: 'd/dx', template: '\\frac{d}{dx}[f(x)]', category: 'calculus' },
+    { name: 'Partial', display: '∂/∂x', template: '\\frac{\\partial [f]}{\\partial [x]}', category: 'calculus' },
+    { name: 'Summation', display: '∑', template: '\\sum_{[i=1]}^{[n]} [a_i]', category: 'calculus' },
+    { name: 'Product', display: '∏', template: '\\prod_{[i=1]}^{[n]} [x_i]', category: 'calculus' },
+    { name: 'Limit', display: 'lim', template: '\\lim_{[x \\to 0]} [f(x)]', category: 'calculus' },
 
     // Fraction Templates
-        { name: 'Fraction', display: 'a/b', template: '\\frac{[a]}{[b]}', category: 'fractions' },
-        { name: 'Square Root', display: '√', template: '\\sqrt{[x]}', category: 'fractions' },
-        { name: 'Nth Root', display: 'ⁿ√', template: '\\sqrt[[n]]{[x]}', category: 'fractions' },
-        { name: 'Superscript', display: 'xⁿ', template: '[x]^{[n]}', category: 'fractions' },
-        { name: 'Subscript', display: 'xᵢ', template: '[x]_{[i]}', category: 'fractions' },
-        { name: 'Both', display: 'xᵢⁿ', template: '[x]_{[i]}^{[n]}', category: 'fractions' },
+    { name: 'Fraction', display: 'a/b', template: '\\frac{[a]}{[b]}', category: 'fractions' },
+    { name: 'Square Root', display: '√', template: '\\sqrt{[x]}', category: 'fractions' },
+    { name: 'Nth Root', display: 'ⁿ√', template: '\\sqrt[[n]]{[x]}', category: 'fractions' },
+    { name: 'Superscript', display: 'xⁿ', template: '[x]^{[n]}', category: 'fractions' },
+    { name: 'Subscript', display: 'xᵢ', template: '[x]_{[i]}', category: 'fractions' },
+    { name: 'Both', display: 'xᵢⁿ', template: '[x]_{[i]}^{[n]}', category: 'fractions' },
 
     // Basic Math
-        { name: 'Times', display: '×', template: ' \\times ', category: 'basic' },
-        { name: 'Divide', display: '÷', template: ' \\div ', category: 'basic' },
-        { name: 'Plus Minus', display: '±', template: ' \\pm ', category: 'basic' },
-        { name: 'Not Equal', display: '≠', template: ' \\neq ', category: 'basic' },
-        { name: 'Less Equal', display: '≤', template: ' \\leq ', category: 'basic' },
-        { name: 'Greater Equal', display: '≥', template: ' \\geq ', category: 'basic' },
-        { name: 'Infinity', display: '∞', template: '\\infty', category: 'basic' },
+    { name: 'Times', display: '×', template: ' \\times ', category: 'basic' },
+    { name: 'Divide', display: '÷', template: ' \\div ', category: 'basic' },
+    { name: 'Plus Minus', display: '±', template: ' \\pm ', category: 'basic' },
+    { name: 'Not Equal', display: '≠', template: ' \\neq ', category: 'basic' },
+    { name: 'Less Equal', display: '≤', template: ' \\leq ', category: 'basic' },
+    { name: 'Greater Equal', display: '≥', template: ' \\geq ', category: 'basic' },
+    { name: 'Infinity', display: '∞', template: '\\infty', category: 'basic' },
 
     // Limits & Logs
-        { name: 'Log', display: 'log', template: '\\log_{[10]}[x]', category: 'limits' },
-        { name: 'Natural Log', display: 'ln', template: '\\ln[x]', category: 'limits' },
-        { name: 'Limit to Infinity', display: 'lim\nx→∞', template: '\\lim_{[x] \\to \\infty} [f(x)]', category: 'limits' },
+    { name: 'Log', display: 'log', template: '\\log_{[10]}[x]', category: 'limits' },
+    { name: 'Natural Log', display: 'ln', template: '\\ln[x]', category: 'limits' },
+    { name: 'Limit to Infinity', display: 'lim\nx→∞', template: '\\lim_{[x] \\to \\infty} [f(x)]', category: 'limits' },
 
     // Trigonometric
-        { name: 'Sin', display: 'sin', template: '\\sin [x]', category: 'trigonometric' },
-        { name: 'Cos', display: 'cos', template: '\\cos [x]', category: 'trigonometric' },
-        { name: 'Tan', display: 'tan', template: '\\tan [x]', category: 'trigonometric' },
-        { name: 'Csc', display: 'csc', template: '\\csc [x]', category: 'trigonometric' },
-        { name: 'Sec', display: 'sec', template: '\\sec [x]', category: 'trigonometric' },
-        { name: 'Cot', display: 'cot', template: '\\cot [x]', category: 'trigonometric' },
-        { name: 'Arcsin', display: 'sin⁻¹', template: '\\arcsin [x]', category: 'trigonometric' },
-        { name: 'Arccos', display: 'cos⁻¹', template: '\\arccos [x]', category: 'trigonometric' },
-        { name: 'Arctan', display: 'tan⁻¹', template: '\\arctan [x]', category: 'trigonometric' },
-        { name: 'Sinh', display: 'sinh', template: '\\sinh [x]', category: 'trigonometric' },
-        { name: 'Cosh', display: 'cosh', template: '\\cosh [x]', category: 'trigonometric' },
-        { name: 'Tanh', display: 'tanh', template: '\\tanh [x]', category: 'trigonometric' },
+    { name: 'Sin', display: 'sin', template: '\\sin [x]', category: 'trigonometric' },
+    { name: 'Cos', display: 'cos', template: '\\cos [x]', category: 'trigonometric' },
+    { name: 'Tan', display: 'tan', template: '\\tan [x]', category: 'trigonometric' },
+    { name: 'Csc', display: 'csc', template: '\\csc [x]', category: 'trigonometric' },
+    { name: 'Sec', display: 'sec', template: '\\sec [x]', category: 'trigonometric' },
+    { name: 'Cot', display: 'cot', template: '\\cot [x]', category: 'trigonometric' },
+    { name: 'Arcsin', display: 'sin⁻¹', template: '\\arcsin [x]', category: 'trigonometric' },
+    { name: 'Arccos', display: 'cos⁻¹', template: '\\arccos [x]', category: 'trigonometric' },
+    { name: 'Arctan', display: 'tan⁻¹', template: '\\arctan [x]', category: 'trigonometric' },
+    { name: 'Sinh', display: 'sinh', template: '\\sinh [x]', category: 'trigonometric' },
+    { name: 'Cosh', display: 'cosh', template: '\\cosh [x]', category: 'trigonometric' },
+    { name: 'Tanh', display: 'tanh', template: '\\tanh [x]', category: 'trigonometric' },
 
     // Greek Letters
-        { name: 'Alpha', display: 'α', template: '\\alpha', category: 'greek' },
-        { name: 'Beta', display: 'β', template: '\\beta', category: 'greek' },
-        { name: 'Gamma', display: 'γ', template: '\\gamma', category: 'greek' },
-        { name: 'Delta', display: 'δ', template: '\\delta', category: 'greek' },
-        { name: 'Epsilon', display: 'ε', template: '\\epsilon', category: 'greek' },
-        { name: 'Theta', display: 'θ', template: '\\theta', category: 'greek' },
-        { name: 'Lambda', display: 'λ', template: '\\lambda', category: 'greek' },
-        { name: 'Mu', display: 'μ', template: '\\mu', category: 'greek' },
-        { name: 'Pi', display: 'π', template: '\\pi', category: 'greek' },
-        { name: 'Rho', display: 'ρ', template: '\\rho', category: 'greek' },
-        { name: 'Sigma', display: 'σ', template: '\\sigma', category: 'greek' },
-        { name: 'Phi', display: 'φ', template: '\\phi', category: 'greek' },
-        { name: 'Omega', display: 'ω', template: '\\omega', category: 'greek' },
-        { name: 'Delta (Upper)', display: 'Δ', template: '\\Delta', category: 'greek' },
-        { name: 'Gamma (Upper)', display: 'Γ', template: '\\Gamma', category: 'greek' },
-        { name: 'Lambda (Upper)', display: 'Λ', template: '\\Lambda', category: 'greek' },
-        { name: 'Sigma (Upper)', display: 'Σ', template: '\\Sigma', category: 'greek' },
-        { name: 'Omega (Upper)', display: 'Ω', template: '\\Omega', category: 'greek' },
+    { name: 'Alpha', display: 'α', template: '\\alpha', category: 'greek' },
+    { name: 'Beta', display: 'β', template: '\\beta', category: 'greek' },
+    { name: 'Gamma', display: 'γ', template: '\\gamma', category: 'greek' },
+    { name: 'Delta', display: 'δ', template: '\\delta', category: 'greek' },
+    { name: 'Epsilon', display: 'ε', template: '\\epsilon', category: 'greek' },
+    { name: 'Theta', display: 'θ', template: '\\theta', category: 'greek' },
+    { name: 'Lambda', display: 'λ', template: '\\lambda', category: 'greek' },
+    { name: 'Mu', display: 'μ', template: '\\mu', category: 'greek' },
+    { name: 'Pi', display: 'π', template: '\\pi', category: 'greek' },
+    { name: 'Rho', display: 'ρ', template: '\\rho', category: 'greek' },
+    { name: 'Sigma', display: 'σ', template: '\\sigma', category: 'greek' },
+    { name: 'Phi', display: 'φ', template: '\\phi', category: 'greek' },
+    { name: 'Omega', display: 'ω', template: '\\omega', category: 'greek' },
+    { name: 'Delta (Upper)', display: 'Δ', template: '\\Delta', category: 'greek' },
+    { name: 'Gamma (Upper)', display: 'Γ', template: '\\Gamma', category: 'greek' },
+    { name: 'Lambda (Upper)', display: 'Λ', template: '\\Lambda', category: 'greek' },
+    { name: 'Sigma (Upper)', display: 'Σ', template: '\\Sigma', category: 'greek' },
+    { name: 'Omega (Upper)', display: 'Ω', template: '\\Omega', category: 'greek' },
 
     // Arrows
-        { name: 'Right Arrow', display: '→', template: '\\rightarrow', category: 'arrows' },
-        { name: 'Left Arrow', display: '←', template: '\\leftarrow', category: 'arrows' },
-        { name: 'Left-Right', display: '↔', template: '\\leftrightarrow', category: 'arrows' },
-        { name: 'Implies', display: '⇒', template: '\\Rightarrow', category: 'arrows' },
-        { name: 'If Only If', display: '⇔', template: '\\Leftrightarrow', category: 'arrows' },
-        { name: 'Maps To', display: '↦', template: '\\mapsto', category: 'arrows' },
-        { name: 'Up Arrow', display: '↑', template: '\\uparrow', category: 'arrows' },
-        { name: 'Down Arrow', display: '↓', template: '\\downarrow', category: 'arrows' },
+    { name: 'Right Arrow', display: '→', template: '\\rightarrow', category: 'arrows' },
+    { name: 'Left Arrow', display: '←', template: '\\leftarrow', category: 'arrows' },
+    { name: 'Left-Right', display: '↔', template: '\\leftrightarrow', category: 'arrows' },
+    { name: 'Implies', display: '⇒', template: '\\Rightarrow', category: 'arrows' },
+    { name: 'If Only If', display: '⇔', template: '\\Leftrightarrow', category: 'arrows' },
+    { name: 'Maps To', display: '↦', template: '\\mapsto', category: 'arrows' },
+    { name: 'Up Arrow', display: '↑', template: '\\uparrow', category: 'arrows' },
+    { name: 'Down Arrow', display: '↓', template: '\\downarrow', category: 'arrows' },
 
     // Functions
-        { name: 'Exponential', display: 'exp', template: '\\exp([x])', category: 'script' },
-        { name: 'Max', display: 'max', template: '\\max([x])', category: 'script' },
-        { name: 'Min', display: 'min', template: '\\min([x])', category: 'script' },
-        { name: 'Determinant', display: 'det', template: '\\det([A])', category: 'script' },
-        { name: 'GCD', display: 'gcd', template: '\\gcd([a],[b])', category: 'script' },
-        { name: 'DEG', display: 'deg', template: '\\deg([x])', category: 'script' },
-        { name: 'Mod', display: 'mod', template: '\\pmod{[n]}', category: 'script' },
+    { name: 'Exponential', display: 'exp', template: '\\exp([x])', category: 'script' },
+    { name: 'Max', display: 'max', template: '\\max([x])', category: 'script' },
+    { name: 'Min', display: 'min', template: '\\min([x])', category: 'script' },
+    { name: 'Determinant', display: 'det', template: '\\det([A])', category: 'script' },
+    { name: 'GCD', display: 'gcd', template: '\\gcd([a],[b])', category: 'script' },
+    { name: 'DEG', display: 'deg', template: '\\deg([x])', category: 'script' },
+    { name: 'Mod', display: 'mod', template: '\\pmod{[n]}', category: 'script' },
   ];
 
   const categoryLabels: Record<Category, string> = {
-        basic: 'Basic Operations',
-        trigonometric: 'Trigonometric',
-        calculus: 'Calculus & Analysis',
-        greek: 'Greek Letters',
-        arrows: 'Arrows',
-        fractions: 'Fractions & Powers',
-        script: 'Functions',
-        limits: 'Limits & Logs',
+    basic: 'Basic Operations',
+    trigonometric: 'Trigonometric',
+    calculus: 'Calculus & Analysis',
+    greek: 'Greek Letters',
+    arrows: 'Arrows',
+    fractions: 'Fractions & Powers',
+    script: 'Functions',
+    limits: 'Limits & Logs',
   };
 
   const filteredTemplates = templates.filter(
@@ -545,34 +546,81 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
         </div>
       )}
 
-      {/* Insert Button */}
-      <button
-        onClick={handleInsert}
-        disabled={isProcessing || !latex.trim()}
-        style={{
-          width: "100%",
-          padding: "10px 24px",
-          background: isProcessing || !latex.trim() ? "#cbd5e0" : "#416afd",
-          color: "white",
-          border: "none",
-          borderRadius: "9999px",
-          fontSize: "15px",
-          fontWeight: 600,
-          cursor: isProcessing || !latex.trim() ? "not-allowed" : "pointer",
-          transition: "all 0.2s",
-        }}
-        onMouseEnter={(e) => {
-          if (!isProcessing && latex.trim()) {
-            e.currentTarget.style.background = "#2546c7"; // Darker shade for hover
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background =
-            isProcessing || !latex.trim() ? "#cbd5e0" : "#416afd";
-        }}
-      >
-        {isProcessing ? "Processing..." : "Insert Equation"}
-      </button>
+      {/* Action Buttons */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {/* Insert Button */}
+        <button
+          onClick={handleInsert}
+          disabled={isProcessing || !latex.trim()}
+          style={{
+            width: "100%",
+            padding: "10px 24px",
+            background: isProcessing || !latex.trim() ? "#cbd5e0" : "#416afd",
+            color: "white",
+            border: "none",
+            borderRadius: "9999px",
+            fontSize: "15px",
+            fontWeight: 600,
+            cursor: isProcessing || !latex.trim() ? "not-allowed" : "pointer",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            if (!isProcessing && latex.trim()) {
+              e.currentTarget.style.background = "#2546c7";
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background =
+              isProcessing || !latex.trim() ? "#cbd5e0" : "#416afd";
+          }}
+        >
+          {isProcessing ? "Processing..." : "Insert Equation"}
+        </button>
+
+        {/* Graph This Equation Button */}
+        {onNavigateToGraph && (
+          <button
+            onClick={() => {
+              let cleanedLatex = latex.trim().replace(/^\$+|\$+$/g, "");
+              cleanedLatex = cleanedLatex.replace(/\[([^\]]+)\]/g, "$1");
+              onNavigateToGraph(cleanedLatex);
+            }}
+            disabled={!latex.trim()}
+            style={{
+              width: "100%",
+              padding: "10px 24px",
+              background: !latex.trim() ? "#e2e8f0" : "#ffffff",
+              color: !latex.trim() ? "#94a3b8" : "#416afd",
+              border: "2px solid",
+              borderColor: !latex.trim() ? "#e2e8f0" : "#416afd",
+              borderRadius: "9999px",
+              fontSize: "15px",
+              fontWeight: 600,
+              cursor: !latex.trim() ? "not-allowed" : "pointer",
+              transition: "all 0.2s",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+            onMouseEnter={(e) => {
+              if (latex.trim()) {
+                e.currentTarget.style.background = "#416afd";
+                e.currentTarget.style.color = "#ffffff";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (latex.trim()) {
+                e.currentTarget.style.background = "#ffffff";
+                e.currentTarget.style.color = "#416afd";
+              }
+            }}
+          >
+            <span>📈</span>
+            <span>Graph This Equation</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 };

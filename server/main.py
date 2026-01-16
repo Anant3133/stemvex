@@ -24,6 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from plot_router import router as plot_router
+from equation_router import router as equation_router
 
 
 # Server version
@@ -81,6 +82,9 @@ app.add_middleware(
 
 # Include the plot router
 app.include_router(plot_router)
+
+# Include the equation router
+app.include_router(equation_router)
 
 
 @app.get(

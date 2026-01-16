@@ -11,9 +11,10 @@ import katex from 'katex';
 
 interface MathDigitizerProps {
     addOnUISdk: AddOnSDKAPI;
+    onNavigateToGraph?: (latex: string) => void;
 }
 
-export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk }) => {
+export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk, onNavigateToGraph }) => {
     const [inputText, setInputText] = useState('');
     const [tokens, setTokens] = useState<Token[]>([]);
     const [isThinking, setIsThinking] = useState(false);
@@ -322,21 +323,40 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({ addOnUISdk }) => {
                                     dangerouslySetInnerHTML={{
                                         __html: katex.renderToString(token.content, { throwOnError: false })
                                     }}
-                                    style={{ fontSize: '14px', maxWidth: '180px', overflowX: 'auto' }}
+                                    style={{ fontSize: '14px', maxWidth: '140px', overflowX: 'auto' }}
                                 />
-                                <button
-                                    onClick={() => handleInsertEquation(token.content)}
-                                    style={{
-                                        fontSize: '11px',
-                                        padding: '4px 8px',
-                                        background: '#fff',
-                                        border: '1px solid #cbd5e0',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Insert
-                                </button>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                    <button
+                                        onClick={() => handleInsertEquation(token.content)}
+                                        style={{
+                                            fontSize: '11px',
+                                            padding: '4px 8px',
+                                            background: '#fff',
+                                            border: '1px solid #cbd5e0',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Insert
+                                    </button>
+                                    {onNavigateToGraph && (
+                                        <button
+                                            onClick={() => onNavigateToGraph(token.content)}
+                                            title="Graph this equation"
+                                            style={{
+                                                fontSize: '11px',
+                                                padding: '4px 8px',
+                                                background: '#fff',
+                                                border: '1px solid #416afd',
+                                                borderRadius: '4px',
+                                                cursor: 'pointer',
+                                                color: '#416afd'
+                                            }}
+                                        >
+                                            📈
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
