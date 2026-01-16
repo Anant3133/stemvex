@@ -1,6 +1,6 @@
 {
-    "testId": "809edbf7-cb94-4cb7-a785-fed62340941f",
-    "name": "Graphs Addon",
+    "testId": "a8f7d3e2-9c4b-4f1a-b2e5-7c8d9a1b3e4f",
+    "name": "Stemvex",
     "version": "1.0.0",
     "manifestVersion": 2,
     "requirements": {
@@ -15,7 +15,8 @@
         {
             "type": "panel",
             "id": "panel1",
-            "main": "index.html"
+            "main": "index.html",
+            "documentSandbox": "code.js"
         }
     ]
 }

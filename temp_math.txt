@@ -1,0 +1,340 @@
+﻿/**
+ * MathInput - React component with Template Builder and Live Preview
+ */
+
+import React, { useState, useRef, useEffect } from 'react';
+import katex from 'katex';
+import { MathEngine } from '../../engines/math/MathEngine';
+import { AddOnSDKAPI, RuntimeType } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
+import { DocumentSandboxApi } from '../../models/DocumentSandboxApi';
+
+interface MathInputProps {
+    addOnUISdk: AddOnSDKAPI;
+}
+
+interface Template {
+    name: string;
+    display: string;
+    template: string;
+    category: string;
+}
+
+type Category = 'basic' | 'trigonometric' | 'calculus' | 'greek' | 'arrows' | 'fractions' | 'script' | 'limits';
+
+export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk }) => {
+    const [latex, setLatex] = useState('E = mc^{2}');
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<Category>('calculus');
+    const [preview, setPreview] = useState('');
+
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const mathEngineRef = useRef<MathEngine | null>(null);
+
+    const getMathEngine = () => {
+        if (!mathEngineRef.current) {
+            mathEngineRef.current = new MathEngine();
+        }
+        return mathEngineRef.current;
+    };
+
+    // Update preview when latex changes
+    useEffect(() => {
+        try {
+            // Replace placeholders with boxes for preview
+            const cleanLatex = latex.replace(/\[([^\]]+)\]/g, '\\boxed{$1}');
+            const html = katex.renderToString(cleanLatex, {
+                throwOnError: false,
+                displayMode: true,
+                output: 'html',
+            });
+            setPreview(html);
+        } catch (e) {
+            setPreview('<span style="color: red;">Invalid LaTeX</span>');
+        }
+    }, [latex]);
+
+    const handleInsert = async () => {
+        setError(null);
+        setSuccess(false);
+
+        let cleanedLatex = latex.trim().replace(/^\$+|\$+$/g, '');
+        // Remove placeholder brackets
+        cleanedLatex = cleanedLatex.replace(/\[([^\]]+)\]/g, '$1');
+
+        const validation = MathEngine.validateLaTeX(cleanedLatex);
+
+        if (!validation.valid) {
+            setError(validation.error || 'Invalid LaTeX');
+            return;
+        }
+
+        setIsProcessing(true);
+
+        try {
+            const mathResult = await getMathEngine().convertToPNG(cleanedLatex);
+            const arrayBuffer = await mathResult.imageData.arrayBuffer();
+            const sandboxApi = await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(RuntimeType.documentSandbox);
+
+            await sandboxApi.insertMath({
+                imageData: arrayBuffer,
+                width: mathResult.width,
+                height: mathResult.height,
+            });
+
+            setSuccess(true);
+            setTimeout(() => setSuccess(false), 2000);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to insert equation');
+            console.error('Insert math error:', err);
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const insertTemplate = (template: string) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+
+        const newText = text.substring(0, start) + template + text.substring(end);
+        setLatex(newText);
+
+        // Find first placeholder and position cursor
+        setTimeout(() => {
+            const firstPlaceholder = template.match(/\[([^\]]+)\]/);
+            if (firstPlaceholder) {
+                const placeholderStart = start + template.indexOf('[');
+                const placeholderEnd = placeholderStart + firstPlaceholder[0].length;
+                textarea.focus();
+                textarea.setSelectionRange(placeholderStart + 1, placeholderEnd - 1);
+            } else {
+                textarea.focus();
+                textarea.setSelectionRange(start + template.length, start + template.length);
+            }
+        }, 10);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const textarea = textareaRef.current;
+            if (!textarea) return;
+
+            const text = textarea.value;
+            const cursorPos = textarea.selectionEnd;
+
+            // Find next placeholder after cursor
+            const remainingText = text.substring(cursorPos);
+            const match = remainingText.match(/\[([^\]]+)\]/);
+
+            if (match && match.index !== undefined) {
+                const placeholderStart = cursorPos + match.index;
+                const placeholderEnd = placeholderStart + match[0].length;
+                textarea.setSelectionRange(placeholderStart + 1, placeholderEnd - 1);
+            }
+        }
+    };
+
+    // Template definitions with placeholders
+    const templates: Template[] = [
+        // Calculus Templates
+        { name: 'Integral', display: 'âˆ«', template: '\\int [f(x)] \\, dx', category: 'calculus' },
+        { name: 'Definite Integral', display: 'âˆ«áµƒáµ‡', template: '\\int_{[a]}^{[b]} [f(x)] \\, dx', category: 'calculus' },
+        { name: 'Double Integral', display: 'âˆ¬', template: '\\iint_{[D]} [f(x,y)] \\, dA', category: 'calculus' },
+        { name: 'Derivative', display: 'd/dx', template: '\\frac{d}{dx}[f(x)]', category: 'calculus' },
+        { name: 'Partial', display: 'âˆ‚/âˆ‚x', template: '\\frac{\\partial [f]}{\\partial [x]}', category: 'calculus' },
+        { name: 'Summation', display: 'âˆ‘', template: '\\sum_{[i=1]}^{[n]} [a_i]', category: 'calculus' },
+        { name: 'Product', display: 'âˆ', template: '\\prod_{[i=1]}^{[n]} [x_i]', category: 'calculus' },
+        { name: 'Limit', display: 'lim', template: '\\lim_{[x \\to 0]} [f(x)]', category: 'calculus' },
+
+        // Fraction Templates
+        { name: 'Fraction', display: 'a/b', template: '\\frac{[a]}{[b]}', category: 'fractions' },
+        { name: 'Square Root', display: 'âˆš', template: '\\sqrt{[x]}', category: 'fractions' },
+        { name: 'Nth Root', display: 'â¿âˆš', template: '\\sqrt[[n]]{[x]}', category: 'fractions' },
+        { name: 'Superscript', display: 'xâ¿', template: '[x]^{[n]}', category: 'fractions' },
+        { name: 'Subscript', display: 'xáµ¢', template: '[x]_{[i]}', category: 'fractions' },
+        { name: 'Both', display: 'xáµ¢â¿', template: '[x]_{[i]}^{[n]}', category: 'fractions' },
+
+        // Basic Math
+        { name: 'Times', display: 'Ã—', template: ' \\times ', category: 'basic' },
+        { name: 'Divide', display: 'Ã·', template: ' \\div ', category: 'basic' },
+        { name: 'Plus Minus', display: 'Â±', template: ' \\pm ', category: 'basic' },
+        { name: 'Not Equal', display: 'â‰ ', template: ' \\neq ', category: 'basic' },
+        { name: 'Less Equal', display: 'â‰¤', template: ' \\leq ', category: 'basic' },
+        { name: 'Greater Equal', display: 'â‰¥', template: ' \\geq ', category: 'basic' },
+        { name: 'Infinity', display: 'âˆž', template: '\\infty', category: 'basic' },
+
+        // Limits & Logs
+        { name: 'Log', display: 'log', template: '\\log_{[10]}[x]', category: 'limits' },
+        { name: 'Natural Log', display: 'ln', template: '\\ln[x]', category: 'limits' },
+        { name: 'Limit to Infinity', display: 'limâ†’âˆž', template: '\\lim_{[x] \\to \\infty} [f(x)]', category: 'limits' },
+    ];
+
+    const categoryLabels: Record<Category, string> = {
+        basic: 'Basic Operations',
+        trigonometric: 'Trigonometric',
+        calculus: 'Calculus & Analysis',
+        greek: 'Greek Letters',
+        arrows: 'Arrows',
+        fractions: 'Fractions & Powers',
+        script: 'Functions',
+        limits: 'Limits & Logs',
+    };
+
+    const filteredTemplates = templates.filter(t => t.category === selectedCategory);
+
+    return (
+        <div style={{ padding: '16px', background: '#ffffff' }}>
+            {/* Header */}
+            <div style={{ marginBottom: '16px' }}>
+                <h3 style={{
+                    margin: '0 0 6px 0',
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    color: '#1a202c',
+                }}>
+                    Visual Equation Builder
+                </h3>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
+                    Click templates to insert â€¢ Press Tab to jump between [placeholders]
+                </p>
+            </div>
+
+            {/* Category Selector */}
+            <div style={{ marginBottom: '12px' }}>
+                <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    marginBottom: '6px',
+                    color: '#374151',
+                }}>
+                    Template Category
+                </label>
+                <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value as Category)}
+                    style={{
+                        width: '100%',
+                        padding: '10px',
+                        fontSize: '14px',
+                        border: '2px solid #e2e8f0',
+                        borderRadius: '6px',
+                        background: '#ffffff',
+                        cursor: 'pointer',
+                        outline: 'none',
+                    }}
+                >
+                    {(Object.keys(categoryLabels) as Category[]).map((cat) => (
+                        <option key={cat} value={cat}>
+                            {categoryLabels[cat]}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            {/* Template Buttons - 3 per row */}
+            <div style={{
+                marginBottom: '16px',
+                padding: '8px',
+                background: '#f8fafc',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0',
+            }}>
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '8px',
+                }}>
+                    {filteredTemplates.map((template) => (
+                        <button
+                            key={template.name}
+                            onClick={() => insertTemplate(template.template)}
+                            title={template.name}
+                            style={{
+                                padding: '12px 8px',
+                                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                                border: '1px solid #cbd5e0',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                fontSize: '20px',
+                                fontWeight: 500,
+                                color: '#1a202c',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '4px',
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                                e.currentTarget.style.color = '#ffffff';
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)';
+                                e.currentTarget.style.color = '#1a202c';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}
+                        >
+                            <span style={{ fontSize: '24px' }}>{template.display}</span>
+                            <span style={{ fontSize: '9px', opacity: 0.7 }}>{template.name}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* LaTeX Input with Tab Navigation */}
+            <div style={{ marginBottom: '12px' }}>
+                <label style={{
+                    display: 'block',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    marginBottom: '6px',
+                    color: '#374151',
+                }}>
+                    LaTeX Code
+                </label>
+                <textarea
+                    ref={textareaRef}
+                    value={latex}
+                    onChange={(e) => setLatex(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Click templates above or type LaTeX directly"
+                    style={{
+                        width: '100%',
+                        minHeight: '80px',
+                        padding: '10px',
+                        fontSize: '13px',
+                        fontFamily: '"Consolas", "Monaco", monospace',
+                        border: '2px solid #e2e8f0',
+                        borderRadius: '6px',
+                        resize: 'vertical',
+                        boxSizing: 'border-box',
+                        background: '#ffffff',
+                        outline: 'none',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
+                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                />
+                <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px' }}>
+                    ðŸ’¡ Tip: Use [brackets] for placeholders, press Tab to navigate between them
+                </div>
+            </div>
+
+            {/* Live Preview */}
+            <div style={{
+                marginBottom: '16px',
+                padding: '16px',
+                background: '#f9fafb',
+                borderRadius: '8px',
+                border: '2px solid #e5e7eb',
+                minHeight: '80px',
+                display: 'flex',

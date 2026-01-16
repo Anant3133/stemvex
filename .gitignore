@@ -13,6 +13,7 @@ __pycache__/
 .venv/
 venv/
 .env
+.env.local
 *.egg-info/
 
 # IDE/Editors
@@ -20,3 +21,5 @@ venv/
 .idea/
 *.swp
 *.swo
+
+hello/

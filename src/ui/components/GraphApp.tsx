@@ -7,7 +7,7 @@ import "@spectrum-web-components/theme/express/theme-light.js";
 import { Button } from "@swc-react/button";
 import { Theme } from "@swc-react/theme";
 import React, { useState, useEffect } from "react";
-import "./App.css";
+import "./GraphApp.css";
 
 import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
 import {
@@ -19,7 +19,7 @@ import {
   PlotType,
   PlotRequest,
   DataConfig,
-} from "../services/plotService";
+} from "../../services/plotService";
 
 interface AppProps {
   addOnUISdk: AddOnSDKAPI;
@@ -43,7 +43,7 @@ const PLOT_TYPES: { type: PlotType; label: string; icon: string }[] = [
   { type: "heatmap", label: "Heatmap", icon: "🔥" },
 ];
 
-const App: React.FC<AppProps> = ({ addOnUISdk }) => {
+const GraphApp: React.FC<AppProps> = ({ addOnUISdk }) => {
   const [status, setStatus] = useState<StatusState>({
     type: "idle",
     message: "",
@@ -427,4 +427,4 @@ const App: React.FC<AppProps> = ({ addOnUISdk }) => {
   );
 };
 
-export default App;
+export default GraphApp;
