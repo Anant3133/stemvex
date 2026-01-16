@@ -52,7 +52,7 @@ export class MathEngine {
             container.style.fontSize = '18px'; // Small standard size
             container.style.color = color;
             container.style.fontFamily = 'KaTeX_Main, Times New Roman, serif';
-            container.style.padding = '20px';
+            container.style.padding = '4px';
             container.style.backgroundColor = 'transparent'; // Transparent background
             container.style.display = 'inline-block'; // Shrink to content
             container.innerHTML = htmlString;

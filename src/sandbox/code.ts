@@ -33,6 +33,15 @@ function start(): void {
         },
         insertMath: async (payload) => {
             await insertMath(payload);
+        },
+        getSelectedText: async () => {
+            const selection = editor.context.selection;
+            if (selection.length > 0) {
+                const node = selection[0] as any;
+                if (typeof node.text === 'string') return node.text;
+                if (typeof node.fullText === 'string') return node.fullText;
+            }
+            return null;
         }
     };
 

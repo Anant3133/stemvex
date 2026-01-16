@@ -4,4 +4,5 @@ import { InsertMathPayload } from "../sandbox/commands/insertMath";
 export interface DocumentSandboxApi {
     createRectangle(): void;
     insertMath(payload: InsertMathPayload): Promise<void>;
+    getSelectedText(): Promise<string | null>;
 }
