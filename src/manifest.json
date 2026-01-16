@@ -1,0 +1,22 @@
+{
+    "testId": "a8f7d3e2-9c4b-4f1a-b2e5-7c8d9a1b3e4f",
+    "name": "Stemvex",
+    "version": "1.0.0",
+    "manifestVersion": 2,
+    "requirements": {
+        "apps": [
+            {
+                "name": "Express",
+                "apiVersion": 1
+            }
+        ]
+    },
+    "entryPoints": [
+        {
+            "type": "panel",
+            "id": "panel1",
+            "main": "index.html",
+            "documentSandbox": "code.js"
+        }
+    ]
+}
