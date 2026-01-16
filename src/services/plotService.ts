@@ -12,13 +12,7 @@ const PLOT_SERVER_URL = "http://localhost:8000";
 // Type Definitions
 // =============================================================================
 
-export type PlotType =
-  | "line"
-  | "scatter"
-  | "bar"
-  | "histogram"
-  | "boxplot"
-  | "heatmap";
+export type PlotType = "line" | "scatter" | "bar" | "histogram" | "boxplot" | "heatmap";
 export type PlotLibrary = "matplotlib" | "seaborn";
 export type FontFamily = "sans-serif" | "serif" | "monospace";
 export type FontWeight = "normal" | "bold";
@@ -197,18 +191,18 @@ export const DEFAULT_CUSTOMIZATION = {
     height: 500,
     dpi: 150,
     background: "#ffffff",
-    transparent: false,
+    transparent: false
   } as FigureConfig,
 
   font: {
     family: "sans-serif" as FontFamily,
-    size_multiplier: 1.0,
+    size_multiplier: 1.0
   } as FontConfig,
 
   title: {
     font_size: 14,
     font_weight: "bold" as FontWeight,
-    color: "#000000",
+    color: "#000000"
   } as TitleConfig,
 
   grid: {
@@ -217,7 +211,7 @@ export const DEFAULT_CUSTOMIZATION = {
     color: "#cccccc",
     alpha: 0.7,
     line_width: 0.5,
-    axis: "both" as GridAxis,
+    axis: "both" as GridAxis
   } as GridConfig,
 
   legend: {
@@ -225,7 +219,7 @@ export const DEFAULT_CUSTOMIZATION = {
     position: "best" as LegendPosition,
     font_size: 10,
     frame: true,
-    frame_alpha: 0.9,
+    frame_alpha: 0.9
   } as LegendConfig,
 
   spines: {
@@ -234,15 +228,15 @@ export const DEFAULT_CUSTOMIZATION = {
     bottom: true,
     left: true,
     color: "#000000",
-    width: 1.0,
+    width: 1.0
   } as SpineConfig,
 
   style: {
     alpha: 1.0,
     linewidth: 2.0,
     marker_size: 50,
-    bar_width: 0.8,
-  } as StyleConfig,
+    bar_width: 0.8
+  } as StyleConfig
 };
 
 // Available color palettes
@@ -256,7 +250,7 @@ export const COLOR_PALETTES = [
   { value: "dark", label: "Dark", description: "Dark, rich" },
   { value: "muted", label: "Muted", description: "Subdued colors" },
   { value: "deep", label: "Deep", description: "Deep, saturated" },
-  { value: "bright", label: "Bright", description: "Vivid, high contrast" },
+  { value: "bright", label: "Bright", description: "Vivid, high contrast" }
 ];
 
 // =============================================================================
@@ -292,15 +286,13 @@ export async function renderPlot(request: PlotRequest): Promise<PlotResponse> {
   const response = await fetch(`${PLOT_SERVER_URL}/render`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify(request),
+    body: JSON.stringify(request)
   });
 
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ message: response.statusText }));
+    const error = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(`Failed to render plot: ${error.detail || error.message}`);
   }
 
@@ -314,15 +306,13 @@ export async function renderPlotPng(request: PlotRequest): Promise<Blob> {
   const response = await fetch(`${PLOT_SERVER_URL}/render-png`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify(request),
+    body: JSON.stringify(request)
   });
 
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => ({ message: response.statusText }));
+    const error = await response.json().catch(() => ({ message: response.statusText }));
     throw new Error(`Failed to render plot: ${error.detail || error.message}`);
   }
 
@@ -371,7 +361,7 @@ export function parseCSV(csvText: string): DataConfig {
       }
     }
     result.push(current.trim());
-    return result.map((val) => val.replace(/^"|"$/g, "")); // Remove surrounding quotes
+    return result.map(val => val.replace(/^"|"$/g, "")); // Remove surrounding quotes
   };
 
   const columns = splitLine(lines[0]);
@@ -445,11 +435,11 @@ export const SAMPLE_DATA = {
         ["Mar", 180],
         ["Apr", 170],
         ["May", 200],
-        ["Jun", 230],
-      ],
+        ["Jun", 230]
+      ]
     },
     mapping: { x: "month", y: "sales" },
-    axes: { title: "Monthly Sales", x_label: "Month", y_label: "Sales ($)" },
+    axes: { title: "Monthly Sales", x_label: "Month", y_label: "Sales ($)" }
   },
 
   scatter: {
@@ -464,16 +454,16 @@ export const SAMPLE_DATA = {
         [1.5, 3.0, "B"],
         [2.5, 4.2, "B"],
         [3.5, 5.5, "B"],
-        [4.5, 6.2, "B"],
-      ],
+        [4.5, 6.2, "B"]
+      ]
     },
     mapping: { x: "x", y: "y", hue: "category" },
     style: { palette: "Set2" },
     axes: {
       title: "Scatter Plot with Categories",
       x_label: "X Value",
-      y_label: "Y Value",
-    },
+      y_label: "Y Value"
+    }
   },
 
   bar: {
@@ -486,31 +476,31 @@ export const SAMPLE_DATA = {
         ["Widget B", 80, "North"],
         ["Widget B", 90, "South"],
         ["Widget C", 150, "North"],
-        ["Widget C", 140, "South"],
-      ],
+        ["Widget C", 140, "South"]
+      ]
     },
     mapping: { x: "product", y: "sales", hue: "region" },
     style: { palette: "viridis" },
     axes: {
       title: "Product Sales by Region",
       x_label: "Product",
-      y_label: "Sales",
-    },
+      y_label: "Sales"
+    }
   },
 
   histogram: {
     plot: { type: "histogram" as PlotType, library: "seaborn" as PlotLibrary },
     data: {
       columns: ["values"],
-      rows: Array.from({ length: 100 }, () => [Math.random() * 100]),
+      rows: Array.from({ length: 100 }, () => [Math.random() * 100])
     },
     mapping: { x: "values" },
     style: { palette: "muted" },
     axes: {
       title: "Value Distribution",
       x_label: "Value",
-      y_label: "Frequency",
-    },
+      y_label: "Frequency"
+    }
   },
 
   boxplot: {
@@ -518,27 +508,18 @@ export const SAMPLE_DATA = {
     data: {
       columns: ["group", "value"],
       rows: [
-        ...Array.from({ length: 20 }, () => [
-          "Group A",
-          50 + Math.random() * 30,
-        ]),
-        ...Array.from({ length: 20 }, () => [
-          "Group B",
-          40 + Math.random() * 40,
-        ]),
-        ...Array.from({ length: 20 }, () => [
-          "Group C",
-          60 + Math.random() * 25,
-        ]),
-      ],
+        ...Array.from({ length: 20 }, () => ["Group A", 50 + Math.random() * 30]),
+        ...Array.from({ length: 20 }, () => ["Group B", 40 + Math.random() * 40]),
+        ...Array.from({ length: 20 }, () => ["Group C", 60 + Math.random() * 25])
+      ]
     },
     mapping: { x: "group", y: "value" },
     style: { palette: "pastel" },
     axes: {
       title: "Value Distribution by Group",
       x_label: "Group",
-      y_label: "Value",
-    },
+      y_label: "Value"
+    }
   },
 
   heatmap: {
@@ -560,11 +541,11 @@ export const SAMPLE_DATA = {
         ["Thu", "Evening", 6],
         ["Fri", "Morning", 9],
         ["Fri", "Afternoon", 5],
-        ["Fri", "Evening", 8],
-      ],
+        ["Fri", "Evening", 8]
+      ]
     },
     mapping: { x: "col", y: "row", hue: "value" },
     style: { palette: "YlOrRd" },
-    axes: { title: "Activity Heatmap", x_label: "Time of Day", y_label: "Day" },
-  },
+    axes: { title: "Activity Heatmap", x_label: "Time of Day", y_label: "Day" }
+  }
 };

@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Python server (Prettier is for JS/TS)
+server/
+
+# Logs and temp files
+*.log
+temp_*.txt
+build_log.txt
+
+# Lock files
+package-lock.json
+
+# Environment
+.env
+.env.*

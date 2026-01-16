@@ -16,13 +16,7 @@ import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk
 
 type TabType = "builder" | "digitizer" | "graphs";
 
-const App = ({
-  addOnUISdk,
-  sandboxProxy,
-}: {
-  addOnUISdk: AddOnSDKAPI;
-  sandboxProxy: DocumentSandboxApi;
-}) => {
+const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxProxy: DocumentSandboxApi }) => {
   const [activeTab, setActiveTab] = useState<TabType>("builder");
 
   // Cross-engine navigation state
@@ -58,9 +52,7 @@ const App = ({
       <div className="m-6 flex flex-col gap-4">
         <div>
           <div className="font-bold text-xl mb-2">Stemvex</div>
-          <p className="text-sm text-gray-600 mb-0">
-            Technical Storytelling Suite
-          </p>
+          <p className="text-sm text-gray-600 mb-0">Technical Storytelling Suite</p>
         </div>
 
         {/* Tab Navigation */}
@@ -68,7 +60,7 @@ const App = ({
           style={{
             display: "flex",
             borderBottom: "1px solid #e2e8f0",
-            marginBottom: "8px",
+            marginBottom: "8px"
           }}
         >
           <button
@@ -78,11 +70,10 @@ const App = ({
               padding: "8px",
               background: activeTab === "builder" ? "#f1f5f9" : "transparent",
               border: "none",
-              borderBottom:
-                activeTab === "builder" ? "2px solid #416afd" : "none",
+              borderBottom: activeTab === "builder" ? "2px solid #416afd" : "none",
               fontWeight: 600,
               color: activeTab === "builder" ? "#416afd" : "#64748b",
-              cursor: "pointer",
+              cursor: "pointer"
             }}
           >
             Equation
@@ -94,11 +85,10 @@ const App = ({
               padding: "8px",
               background: activeTab === "digitizer" ? "#f1f5f9" : "transparent",
               border: "none",
-              borderBottom:
-                activeTab === "digitizer" ? "2px solid #416afd" : "none",
+              borderBottom: activeTab === "digitizer" ? "2px solid #416afd" : "none",
               fontWeight: 600,
               color: activeTab === "digitizer" ? "#416afd" : "#64748b",
-              cursor: "pointer",
+              cursor: "pointer"
             }}
           >
             Digitizer
@@ -110,11 +100,10 @@ const App = ({
               padding: "8px",
               background: activeTab === "graphs" ? "#f1f5f9" : "transparent",
               border: "none",
-              borderBottom:
-                activeTab === "graphs" ? "2px solid #416afd" : "none",
+              borderBottom: activeTab === "graphs" ? "2px solid #416afd" : "none",
               fontWeight: 600,
               color: activeTab === "graphs" ? "#416afd" : "#64748b",
-              cursor: "pointer",
+              cursor: "pointer"
             }}
           >
             Graphs
@@ -124,15 +113,9 @@ const App = ({
         {/* Content */}
         <div>
           {activeTab === "builder" ? (
-            <MathInput
-              addOnUISdk={addOnUISdk}
-              onNavigateToGraph={handleNavigateToGraph}
-            />
+            <MathInput addOnUISdk={addOnUISdk} onNavigateToGraph={handleNavigateToGraph} />
           ) : activeTab === "digitizer" ? (
-            <MathDigitizer
-              addOnUISdk={addOnUISdk}
-              onNavigateToGraph={handleNavigateToGraph}
-            />
+            <MathDigitizer addOnUISdk={addOnUISdk} onNavigateToGraph={handleNavigateToGraph} />
           ) : (
             <GraphApp
               addOnUISdk={addOnUISdk}

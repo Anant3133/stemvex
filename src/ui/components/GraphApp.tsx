@@ -28,7 +28,7 @@ import {
   LegendConfig,
   SpineConfig,
   StyleConfig,
-  DEFAULT_CUSTOMIZATION,
+  DEFAULT_CUSTOMIZATION
 } from "../../services/plotService";
 import {
   parseFile,
@@ -36,13 +36,13 @@ import {
   ParseResult,
   ColumnInfo,
   formatFileSize,
-  getPreviewRows,
+  getPreviewRows
 } from "../../services/dataParser";
 import {
   renderEquationPng,
   DEFAULT_EXAMPLES,
   isPlottableEquation,
-  EquationPlotRequest,
+  EquationPlotRequest
 } from "../../services/equationPlotService";
 import ChartCustomizer from "./ChartCustomizer";
 
@@ -69,23 +69,16 @@ const PLOT_TYPES: { type: PlotType; label: string; icon: string }[] = [
   { type: "bar", label: "Bar Chart", icon: "📊" },
   { type: "histogram", label: "Histogram", icon: "📶" },
   { type: "boxplot", label: "Box Plot", icon: "📦" },
-  { type: "heatmap", label: "Heatmap", icon: "🔥" },
+  { type: "heatmap", label: "Heatmap", icon: "🔥" }
 ];
 
-const GraphApp: React.FC<AppProps> = ({
-  addOnUISdk,
-  prefillEquation,
-  initialMode,
-  onEquationUsed
-}) => {
+const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode, onEquationUsed }) => {
   const [status, setStatus] = useState<StatusState>({
     type: "idle",
-    message: "",
+    message: ""
   });
   const [serverOnline, setServerOnline] = useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>(
-    initialMode === "equation" ? "equation" : "quick"
-  );
+  const [activeTab, setActiveTab] = useState<TabType>(initialMode === "equation" ? "equation" : "quick");
   const [debugInfo, setDebugInfo] = useState<string>("");
 
   // Input Mode for custom data
@@ -148,7 +141,7 @@ const GraphApp: React.FC<AppProps> = ({
     try {
       const html = katex.renderToString(equationLatex, {
         throwOnError: false,
-        displayMode: false,
+        displayMode: false
       });
       setEquationPreview(html);
     } catch {
@@ -276,7 +269,7 @@ const GraphApp: React.FC<AppProps> = ({
 
   const addToCanvas = async (blob: Blob, title: string) => {
     const { document } = addOnUISdk.app;
-    setDebugInfo((prev) => prev + " | Adding to canvas...");
+    setDebugInfo(prev => prev + " | Adding to canvas...");
     await document.addImage(blob, { title: title });
     console.log("addImage succeeded!");
   };
@@ -303,8 +296,7 @@ const GraphApp: React.FC<AppProps> = ({
       setTimeout(() => setStatus({ type: "idle", message: "" }), 3000);
     } catch (error) {
       console.error("Failed to add plot:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       setStatus({ type: "error", message: errorMessage });
       setDebugInfo(`Error: ${errorMessage}`);
     }
@@ -317,7 +309,7 @@ const GraphApp: React.FC<AppProps> = ({
     if (!parsedResult) {
       setStatus({
         type: "error",
-        message: "Please enter valid data first",
+        message: "Please enter valid data first"
       });
       return;
     }
@@ -338,13 +330,13 @@ const GraphApp: React.FC<AppProps> = ({
     const request: PlotRequest = {
       plot: {
         type: selectedPlotType,
-        library: "seaborn",
+        library: "seaborn"
       },
       data: parsedResult.data,
       mapping: {
         x: mapX,
         y: mapY || undefined,
-        hue: mapHue || undefined,
+        hue: mapHue || undefined
       },
       axes: {
         title_config: { ...titleConfig, text: title || "Custom Chart" },
@@ -353,11 +345,11 @@ const GraphApp: React.FC<AppProps> = ({
         tick_config: tickConfig,
         grid: gridConfig,
         legend: legendConfig,
-        spines: spineConfig,
+        spines: spineConfig
       },
       style: styleConfig,
       figure: figureConfig,
-      font: fontConfig,
+      font: fontConfig
     };
 
     try {
@@ -371,8 +363,7 @@ const GraphApp: React.FC<AppProps> = ({
       setTimeout(() => setStatus({ type: "idle", message: "" }), 3000);
     } catch (error) {
       console.error("Failed to render custom plot:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       setStatus({ type: "error", message: errorMessage });
       setDebugInfo(`Error: ${errorMessage}`);
     }
@@ -396,7 +387,7 @@ const GraphApp: React.FC<AppProps> = ({
         x_min: xMin,
         x_max: xMax,
         color: equationColor,
-        grid: showGrid,
+        grid: showGrid
       };
 
       setDebugInfo("Sending equation to server...");
@@ -409,8 +400,7 @@ const GraphApp: React.FC<AppProps> = ({
       setTimeout(() => setStatus({ type: "idle", message: "" }), 3000);
     } catch (error) {
       console.error("Failed to render equation:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       setStatus({ type: "error", message: errorMessage });
       setDebugInfo(`Error: ${errorMessage}`);
     }
@@ -424,15 +414,13 @@ const GraphApp: React.FC<AppProps> = ({
 
   // Get column type badge
   const getTypeBadge = (colName: string): string => {
-    const col = parsedResult?.columnInfo.find((c) => c.name === colName);
+    const col = parsedResult?.columnInfo.find(c => c.name === colName);
     if (!col) return "";
     return col.type === "number" ? "123" : "abc";
   };
 
   // Preview data
-  const previewRows = parsedResult
-    ? getPreviewRows(parsedResult.data, showAllPreview ? 20 : 5)
-    : [];
+  const previewRows = parsedResult ? getPreviewRows(parsedResult.data, showAllPreview ? 20 : 5) : [];
 
   return (
     <Theme system="express" scale="medium" color="light">
@@ -441,42 +429,24 @@ const GraphApp: React.FC<AppProps> = ({
         <div className="header">
           <h2 className="title">📊 Graph Generator</h2>
           <div
-            className={`server-status ${serverOnline === true
-              ? "online"
-              : serverOnline === false
-                ? "offline"
-                : "checking"
-              }`}
+            className={`server-status ${
+              serverOnline === true ? "online" : serverOnline === false ? "offline" : "checking"
+            }`}
           >
             <span className="status-dot"></span>
-            <span className="status-text">
-              {serverOnline === null
-                ? "..."
-                : serverOnline
-                  ? "Online"
-                  : "Offline"}
-            </span>
+            <span className="status-text">{serverOnline === null ? "..." : serverOnline ? "Online" : "Offline"}</span>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="tabs">
-          <div
-            className={`tab ${activeTab === "quick" ? "active" : ""}`}
-            onClick={() => setActiveTab("quick")}
-          >
+          <div className={`tab ${activeTab === "quick" ? "active" : ""}`} onClick={() => setActiveTab("quick")}>
             Quick Charts
           </div>
-          <div
-            className={`tab ${activeTab === "custom" ? "active" : ""}`}
-            onClick={() => setActiveTab("custom")}
-          >
+          <div className={`tab ${activeTab === "custom" ? "active" : ""}`} onClick={() => setActiveTab("custom")}>
             Custom Data
           </div>
-          <div
-            className={`tab ${activeTab === "equation" ? "active" : ""}`}
-            onClick={() => setActiveTab("equation")}
-          >
+          <div className={`tab ${activeTab === "equation" ? "active" : ""}`} onClick={() => setActiveTab("equation")}>
             📐 Equation
           </div>
         </div>
@@ -501,8 +471,7 @@ const GraphApp: React.FC<AppProps> = ({
                   key={type}
                   variant="secondary"
                   onClick={() => {
-                    if (status.type === "loading" || serverOnline === false)
-                      return;
+                    if (status.type === "loading" || serverOnline === false) return;
                     handleAddPlot(type);
                   }}
                 >
@@ -526,11 +495,9 @@ const GraphApp: React.FC<AppProps> = ({
                 <select
                   className="native-select"
                   value={selectedPlotType}
-                  onChange={(e) =>
-                    setSelectedPlotType(e.target.value as PlotType)
-                  }
+                  onChange={e => setSelectedPlotType(e.target.value as PlotType)}
                 >
-                  {PLOT_TYPES.map((pt) => (
+                  {PLOT_TYPES.map(pt => (
                     <option key={pt.type} value={pt.type}>
                       {pt.icon} {pt.label}
                     </option>
@@ -546,7 +513,7 @@ const GraphApp: React.FC<AppProps> = ({
                 className="native-input"
                 type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={e => setTitle(e.target.value)}
                 placeholder="Enter chart title"
               />
             </div>
@@ -588,7 +555,7 @@ const GraphApp: React.FC<AppProps> = ({
                     className="csv-input"
                     rows={6}
                     value={customCsv}
-                    onChange={(e) => setCustomCsv(e.target.value)}
+                    onChange={e => setCustomCsv(e.target.value)}
                     placeholder="col1,col2,col3&#10;val1,val2,val3"
                   />
                 </div>
@@ -617,9 +584,7 @@ const GraphApp: React.FC<AppProps> = ({
                     {!uploadedFile ? (
                       <>
                         <span className="drop-icon">📄</span>
-                        <span className="drop-text">
-                          Drop CSV or XLSX file here
-                        </span>
+                        <span className="drop-text">Drop CSV or XLSX file here</span>
                         <span className="drop-subtext">or click to browse</span>
                       </>
                     ) : (
@@ -627,13 +592,11 @@ const GraphApp: React.FC<AppProps> = ({
                         <span className="file-icon">📄</span>
                         <div className="file-details">
                           <span className="file-name">{uploadedFile.name}</span>
-                          <span className="file-size">
-                            {formatFileSize(uploadedFile.size)}
-                          </span>
+                          <span className="file-size">{formatFileSize(uploadedFile.size)}</span>
                         </div>
                         <button
                           className="clear-btn"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             handleClearData();
                           }}
@@ -651,14 +614,9 @@ const GraphApp: React.FC<AppProps> = ({
             {parsedResult && (
               <div className="data-preview">
                 <div className="preview-header">
-                  <span className="preview-title">
-                    Data Preview ({parsedResult.rowCount} rows)
-                  </span>
+                  <span className="preview-title">Data Preview ({parsedResult.rowCount} rows)</span>
                   {parsedResult.rowCount > 5 && (
-                    <button
-                      className="show-more-btn"
-                      onClick={() => setShowAllPreview(!showAllPreview)}
-                    >
+                    <button className="show-more-btn" onClick={() => setShowAllPreview(!showAllPreview)}>
                       {showAllPreview ? "Show Less" : "Show More"}
                     </button>
                   )}
@@ -683,12 +641,8 @@ const GraphApp: React.FC<AppProps> = ({
                         {parsedResult.data.columns.map((col, i) => (
                           <th key={i}>
                             <span className="col-name">{col}</span>
-                            <span
-                              className={`type-badge ${parsedResult.columnInfo[i]?.type || "string"}`}
-                            >
-                              {parsedResult.columnInfo[i]?.type === "number"
-                                ? "123"
-                                : "abc"}
+                            <span className={`type-badge ${parsedResult.columnInfo[i]?.type || "string"}`}>
+                              {parsedResult.columnInfo[i]?.type === "number" ? "123" : "abc"}
                             </span>
                           </th>
                         ))}
@@ -707,9 +661,7 @@ const GraphApp: React.FC<AppProps> = ({
                 </div>
 
                 {!showAllPreview && parsedResult.rowCount > 5 && (
-                  <div className="preview-ellipsis">
-                    ... and {parsedResult.rowCount - 5} more rows
-                  </div>
+                  <div className="preview-ellipsis">... and {parsedResult.rowCount - 5} more rows</div>
                 )}
               </div>
             )}
@@ -724,13 +676,9 @@ const GraphApp: React.FC<AppProps> = ({
                     <label>
                       X Axis <span className="required">*</span>
                     </label>
-                    <select
-                      className="native-select small"
-                      value={mapX}
-                      onChange={(e) => setMapX(e.target.value)}
-                    >
+                    <select className="native-select small" value={mapX} onChange={e => setMapX(e.target.value)}>
                       <option value="">(Select)</option>
-                      {parsedResult.data.columns.map((c) => (
+                      {parsedResult.data.columns.map(c => (
                         <option key={c} value={c}>
                           {c} [{getTypeBadge(c)}]
                         </option>
@@ -743,13 +691,9 @@ const GraphApp: React.FC<AppProps> = ({
                       <label>
                         Y Axis <span className="required">*</span>
                       </label>
-                      <select
-                        className="native-select small"
-                        value={mapY}
-                        onChange={(e) => setMapY(e.target.value)}
-                      >
+                      <select className="native-select small" value={mapY} onChange={e => setMapY(e.target.value)}>
                         <option value="">(Select)</option>
-                        {parsedResult.data.columns.map((c) => (
+                        {parsedResult.data.columns.map(c => (
                           <option key={c} value={c}>
                             {c} [{getTypeBadge(c)}]
                           </option>
@@ -760,13 +704,9 @@ const GraphApp: React.FC<AppProps> = ({
 
                   <div className="map-item">
                     <label>Hue (Color)</label>
-                    <select
-                      className="native-select small"
-                      value={mapHue}
-                      onChange={(e) => setMapHue(e.target.value)}
-                    >
+                    <select className="native-select small" value={mapHue} onChange={e => setMapHue(e.target.value)}>
                       <option value="">(None)</option>
-                      {parsedResult.data.columns.map((c) => (
+                      {parsedResult.data.columns.map(c => (
                         <option key={c} value={c}>
                           {c} [{getTypeBadge(c)}]
                         </option>
@@ -787,10 +727,7 @@ const GraphApp: React.FC<AppProps> = ({
               >
                 Generate Custom Chart
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setShowCustomizer(true)}
-              >
+              <Button variant="secondary" onClick={() => setShowCustomizer(true)}>
                 ⚙️ Customize
               </Button>
             </div>
@@ -801,9 +738,7 @@ const GraphApp: React.FC<AppProps> = ({
         {activeTab === "equation" && (
           <div className="section equation-section">
             <h3 className="section-title">Plot Mathematical Function</h3>
-            <p className="section-description">
-              Enter a LaTeX equation to visualize as a graph
-            </p>
+            <p className="section-description">Enter a LaTeX equation to visualize as a graph</p>
 
             {/* Equation Input */}
             <div className="form-group">
@@ -811,16 +746,13 @@ const GraphApp: React.FC<AppProps> = ({
               <textarea
                 className="equation-input"
                 value={equationLatex}
-                onChange={(e) => setEquationLatex(e.target.value)}
+                onChange={e => setEquationLatex(e.target.value)}
                 placeholder="e.g., x^2, \sin(x), e^{-x^2}"
                 rows={2}
               />
               <div className="equation-preview">
                 <span className="preview-label">Preview: </span>
-                <span
-                  dangerouslySetInnerHTML={{ __html: equationPreview }}
-                  style={{ fontSize: "18px" }}
-                />
+                <span dangerouslySetInnerHTML={{ __html: equationPreview }} style={{ fontSize: "18px" }} />
               </div>
             </div>
 
@@ -851,7 +783,7 @@ const GraphApp: React.FC<AppProps> = ({
                     type="number"
                     className="native-input small"
                     value={xMin}
-                    onChange={(e) => setXMin(Number(e.target.value))}
+                    onChange={e => setXMin(Number(e.target.value))}
                   />
                 </div>
                 <span className="range-separator">to</span>
@@ -861,7 +793,7 @@ const GraphApp: React.FC<AppProps> = ({
                     type="number"
                     className="native-input small"
                     value={xMax}
-                    onChange={(e) => setXMax(Number(e.target.value))}
+                    onChange={e => setXMax(Number(e.target.value))}
                   />
                 </div>
               </div>
@@ -871,20 +803,12 @@ const GraphApp: React.FC<AppProps> = ({
             <div className="form-group">
               <div className="option-row">
                 <label className="option-label">
-                  <input
-                    type="checkbox"
-                    checked={showGrid}
-                    onChange={(e) => setShowGrid(e.target.checked)}
-                  />
+                  <input type="checkbox" checked={showGrid} onChange={e => setShowGrid(e.target.checked)} />
                   <span>Show Grid</span>
                 </label>
                 <div className="color-picker">
                   <label>Color:</label>
-                  <input
-                    type="color"
-                    value={equationColor}
-                    onChange={(e) => setEquationColor(e.target.value)}
-                  />
+                  <input type="color" value={equationColor} onChange={e => setEquationColor(e.target.value)} />
                 </div>
               </div>
             </div>
