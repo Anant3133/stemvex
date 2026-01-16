@@ -8,6 +8,7 @@ Convert LaTeX mathematical equations into high-quality PNG images and insert the
 
 - **LaTeX to PNG Conversion**: Render LaTeX equations using KaTeX and convert them to PNG images
 - **Native Adobe Express Integration**: Insert equations as bitmap images that can be moved, resized, and edited
+- **Image Equation Parser (MVP)**: Upload/paste an image, extract printed equations via a math OCR service, dedupe + classify, then insert any result
 - **Rich Example Library**: 17+ example equations covering algebra, calculus, matrices, and more
 - **LaTeX Validation**: Real-time syntax checking before conversion
 - **Quick Reference Guide**: Built-in LaTeX cheatsheet for common commands
@@ -47,6 +48,34 @@ npm start
 ```
 
 This will start a local development server (typically at `http://localhost:5241`).
+
+### Parser (Image) configuration (MVP)
+
+The Parser feature sends uploaded/pasted images to a third-party math OCR endpoint to extract equations as LaTeX. Configure these environment variables **at build/start time** (do not commit secrets):
+
+- `MATH_OCR_API_KEY`
+- `MATH_OCR_ENDPOINT`
+
+Example:
+
+```bash
+MATH_OCR_API_KEY="..." MATH_OCR_ENDPOINT="https://your-ocr.example.com/parse" npm start
+```
+
+#### Generic endpoint contract (recommended)
+
+`MATH_OCR_ENDPOINT` should accept:
+
+- `POST` JSON: `{ "imageBase64": "<dataUrl>", "mimeType": "image/png", "multipleEquations": true }`
+- Header: `Authorization: Bearer <MATH_OCR_API_KEY>`
+
+and return:
+
+- JSON: `{ "equations": [{ "latex": "...", "confidence": 0.0-1.0 }] }`
+
+#### Mathpix adapter (best-effort)
+
+If `MATH_OCR_ENDPOINT` contains `"mathpix.com"`, Stemvex expects `MATH_OCR_API_KEY` as `"<app_id>:<app_key>"` and will attempt to read `latex_styled` / `latex` from the response (typically a single equation for MVP).
 
 ### Building for Production
 
@@ -95,12 +124,18 @@ E = mc^{2}                                      # Einstein's equation
 
 ## 📁 Project Structure
 
-```
+```plain
 stemvex/
 ├── src/
 │   ├── engines/
-│   │   └── math/
-│   │       └── MathEngine.ts          # LaTeX → PNG conversion engine
+│   │   ├── math/
+│   │   │   └── MathEngine.ts          # LaTeX → PNG conversion engine
+│   │   └── parser/
+│   │       ├── MathOcrClient.ts       # Image → LaTeX (OCR client)
+│   │       ├── EquationNormalizer.ts  # Normalization for dedupe
+│   │       ├── EquationDeduper.ts     # Dedupe policy
+│   │       ├── EquationClassifier.ts  # Rule-based labeling
+│   │       └── types.ts               # Shared types
 │   ├── sandbox/
 │   │   ├── commands/
 │   │   │   └── insertMath.ts          # Document manipulation command
@@ -109,6 +144,7 @@ stemvex/
 │   ├── ui/
 │   │   ├── components/
 │   │   │   ├── App.tsx                # Main application component
+│   │   │   ├── ParserPanel.tsx        # Image parser UI
 │   │   │   └── MathInput.tsx          # LaTeX input component
 │   │   ├── index.tsx                  # UI runtime entry point
 │   │   ├── styles.css                 # Tailwind CSS imports
@@ -128,19 +164,23 @@ stemvex/
 ## 🛠️ Technology Stack
 
 ### Core
+
 - **TypeScript** 5.3.2
 - **React** 18.2.0
 - **Webpack** 5.98.0
 
 ### Math Rendering
+
 - **KaTeX** 0.16.27 - Fast LaTeX rendering
 - **html2canvas** 1.4.1 - HTML to PNG conversion
 
 ### Styling
+
 - **TailwindCSS** 3.4.19
 - **Adobe Spectrum Web Components** 1.7.0
 
 ### Adobe
+
 - **Adobe Creative Cloud Web Add-on SDK**
 - **Adobe Express Document SDK**
 
@@ -149,13 +189,14 @@ stemvex/
 ### Why Bitmap Images?
 
 The add-on converts LaTeX to PNG (bitmap) rather than SVG (vector) because:
+
 - Adobe Express SDK has better support for bitmap images
 - Ensures consistent rendering across all platforms
 - Avoids complex SVG path conversion issues
 
 ### Two-Runtime Communication
 
-```
+```plain
 User Input (LaTeX)
     ↓
 UI Runtime: MathEngine.convertToPNG()
@@ -211,6 +252,7 @@ This project is provided as-is for educational and development purposes.
 ## 🤝 Contributing
 
 This is a complete, production-ready add-on. Future features can follow the same architectural pattern:
+
 - Code syntax highlighting
 - Data visualization
 - Diagram generation
