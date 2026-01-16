@@ -140,6 +140,13 @@ class ScatterRenderer(BaseRenderer):
         
         sns_kwargs = self.get_seaborn_kwargs(style)
         
+        # Add marker and marker_size for scatter plots specifically
+        if style is not None:
+            if style.marker is not None:
+                sns_kwargs["marker"] = style.marker
+            if style.marker_size is not None:
+                sns_kwargs["s"] = style.marker_size
+        
         # Set default alpha if not specified
         if "alpha" not in sns_kwargs:
             sns_kwargs["alpha"] = 0.7

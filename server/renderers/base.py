@@ -383,6 +383,10 @@ class BaseRenderer(ABC):
             
         Returns:
             Dictionary of seaborn-compatible keyword arguments
+            
+        Note:
+            marker_size ('s') and marker are intentionally NOT included here as they're
+            only applicable to scatter/line plots. Handle them in those renderers.
         """
         kwargs = {}
         
@@ -398,11 +402,7 @@ class BaseRenderer(ABC):
         if style.linewidth is not None:
             kwargs["linewidth"] = style.linewidth
         
-        if style.marker is not None:
-            kwargs["marker"] = style.marker
-        
-        if style.marker_size is not None:
-            kwargs["s"] = style.marker_size
+        # Note: marker and marker_size ('s') are handled in scatter/line renderers only
         
         return kwargs
     

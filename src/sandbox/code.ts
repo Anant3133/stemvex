@@ -33,27 +33,61 @@ function start() {
         const blob = new Blob([data.imageData], { type: "image/png" });
         const bitmap = await editor.loadBitmapImage(blob);
 
-        const doc = editor.documentRoot;
-        const page = doc.pages.first;
-        const artboard = page.artboards.first;
+        // ALL document mutations must be wrapped in queueAsyncEdit
+        await editor.queueAsyncEdit(async () => {
+          const doc = editor.documentRoot;
+          const page = doc.pages.first;
+          const artboard = page.artboards.first;
 
-        const imageContainer = editor.createImageContainer(bitmap, {
-          initialSize: { width: data.width, height: data.height }
+          const imageContainer = editor.createImageContainer(bitmap, {
+            initialSize: { width: data.width, height: data.height }
+          });
+
+          if (data.position) {
+            imageContainer.translation = { x: data.position.x, y: data.position.y };
+          } else {
+            // Center it
+            imageContainer.translation = {
+              x: artboard.width / 2 - data.width / 2,
+              y: artboard.height / 2 - data.height / 2
+            };
+          }
+
+          artboard.children.append(imageContainer);
         });
-
-        if (data.position) {
-          imageContainer.translation = { x: data.position.x, y: data.position.y };
-        } else {
-          // Center it
-          imageContainer.translation = {
-            x: artboard.width / 2 - data.width / 2,
-            y: artboard.height / 2 - data.height / 2
-          };
-        }
-
-        artboard.children.append(imageContainer);
       } catch (e) {
         console.error("Failed to insert math", e);
+        throw e;
+      }
+    },
+    insertImage: async (data: { imageData: ArrayBuffer; title?: string }) => {
+      console.log("insertImage called", data.title);
+      try {
+        const blob = new Blob([data.imageData], { type: "image/png" });
+        const bitmap = await editor.loadBitmapImage(blob);
+
+        // ALL document mutations must be wrapped in queueAsyncEdit
+        await editor.queueAsyncEdit(async () => {
+          const doc = editor.documentRoot;
+          const page = doc.pages.first;
+          const artboard = page.artboards.first;
+
+          const imageContainer = editor.createImageContainer(bitmap);
+
+          // Center the image on the artboard
+          const imgWidth = bitmap.width;
+          const imgHeight = bitmap.height;
+          imageContainer.translation = {
+            x: artboard.width / 2 - imgWidth / 2,
+            y: artboard.height / 2 - imgHeight / 2
+          };
+
+          artboard.children.append(imageContainer);
+        });
+
+        console.log("insertImage succeeded!");
+      } catch (e) {
+        console.error("Failed to insert image", e);
         throw e;
       }
     },

@@ -10,11 +10,11 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import katex from "katex";
 import "./GraphApp.css";
 
-import { AddOnSDKAPI } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
+import { AddOnSDKAPI, RuntimeType } from "https://new.express.adobe.com/static/add-on-sdk/sdk.js";
+import { DocumentSandboxApi } from "../../models/DocumentSandboxApi";
 import {
   renderPlotPng,
   checkHealth,
-  SAMPLE_DATA,
   SAMPLE_CSV,
   PlotType,
   PlotRequest,
@@ -60,7 +60,7 @@ interface StatusState {
   message: string;
 }
 
-type TabType = "quick" | "custom" | "equation";
+type TabType = "custom" | "equation";
 type InputMode = "paste" | "upload";
 
 const PLOT_TYPES: { type: PlotType; label: string; icon: string }[] = [
@@ -78,7 +78,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
     message: ""
   });
   const [serverOnline, setServerOnline] = useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>(initialMode === "equation" ? "equation" : "quick");
+  const [activeTab, setActiveTab] = useState<TabType>(initialMode === "equation" ? "equation" : "custom");
   const [debugInfo, setDebugInfo] = useState<string>("");
 
   // Input Mode for custom data
@@ -268,37 +268,18 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
   };
 
   const addToCanvas = async (blob: Blob, title: string) => {
-    const { document } = addOnUISdk.app;
     setDebugInfo(prev => prev + " | Adding to canvas...");
-    await document.addImage(blob, { title: title });
-    console.log("addImage succeeded!");
-  };
-
-  /**
-   * Generate a plot and add it to the Express canvas
-   */
-  const handleAddPlot = async (plotType: PlotType) => {
-    setStatus({ type: "loading", message: `Generating ${plotType} chart...` });
-    setDebugInfo("");
-
     try {
-      const sampleData = SAMPLE_DATA[plotType];
-      console.log("Rendering plot:", plotType);
-
-      setDebugInfo("Fetching PNG from server...");
-      const pngBlob = await renderPlotPng(sampleData);
-      console.log("Got PNG blob:", pngBlob.size, "bytes, type:", pngBlob.type);
-      setDebugInfo(`PNG received: ${pngBlob.size} bytes`);
-
-      await addToCanvas(pngBlob, `${plotType} chart`);
-
-      setStatus({ type: "success", message: `${plotType} chart added!` });
-      setTimeout(() => setStatus({ type: "idle", message: "" }), 3000);
+      const arrayBuffer = await blob.arrayBuffer();
+      const sandboxApi = await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(RuntimeType.documentSandbox);
+      await sandboxApi.insertImage({
+        imageData: arrayBuffer,
+        title: title
+      });
+      console.log("insertImage succeeded!");
     } catch (error) {
-      console.error("Failed to add plot:", error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      setStatus({ type: "error", message: errorMessage });
-      setDebugInfo(`Error: ${errorMessage}`);
+      console.error("Failed to add to canvas:", error);
+      throw error;
     }
   };
 
@@ -440,14 +421,11 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
 
         {/* Tabs */}
         <div className="tabs">
-          <div className={`tab ${activeTab === "quick" ? "active" : ""}`} onClick={() => setActiveTab("quick")}>
-            Quick Charts
-          </div>
           <div className={`tab ${activeTab === "custom" ? "active" : ""}`} onClick={() => setActiveTab("custom")}>
             Custom Data
           </div>
           <div className={`tab ${activeTab === "equation" ? "active" : ""}`} onClick={() => setActiveTab("equation")}>
-            📐 Equation
+            Equation
           </div>
         </div>
 
@@ -458,30 +436,6 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
             {status.type === "success" && <span>✅</span>}
             {status.type === "error" && <span>❌</span>}
             <span>{status.message}</span>
-          </div>
-        )}
-
-        {/* Quick Charts Tab */}
-        {activeTab === "quick" && (
-          <div className="section">
-            <h3 className="section-title">One-Click Examples</h3>
-            <div className="button-grid">
-              {PLOT_TYPES.map(({ type, label, icon }) => (
-                <Button
-                  key={type}
-                  variant="secondary"
-                  onClick={() => {
-                    if (status.type === "loading" || serverOnline === false) return;
-                    handleAddPlot(type);
-                  }}
-                >
-                  <span className="button-content">
-                    <span className="button-icon">{icon}</span>
-                    <span className="button-label">{label}</span>
-                  </span>
-                </Button>
-              ))}
-            </div>
           </div>
         )}
 
@@ -728,7 +682,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                 Generate Custom Chart
               </Button>
               <Button variant="secondary" onClick={() => setShowCustomizer(true)}>
-                ⚙️ Customize
+                Customize
               </Button>
             </div>
           </div>

@@ -12,7 +12,8 @@
 .tabs {
     display: flex;
     border-bottom: 2px solid #e0e0e0;
-    margin-bottom: 8px;
+    margin: 0 auto 8px auto;
+    width: fit-content;
 }
 
 .tab {
@@ -184,7 +185,8 @@
     color: #6b7280;
 }
 
-.range-field input {
+.range-field input,
+.range-field .native-input.small {
     width: 80px;
 }
 
