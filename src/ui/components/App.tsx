@@ -43,13 +43,6 @@ const App = ({ addOnUISdk, sandboxProxy }: { addOnUISdk: AddOnSDKAPI; sandboxPro
                 <div>
                     <MathInput addOnUISdk={addOnUISdk} />
                 </div>
-
-                {/* Original Demo - Keep for now */}
-                <div className="pt-4 border-t border-gray-200">
-                    <Button className="w-full bg-blue-600" onClick={handleClick}>
-                        Create Rectangle (Demo)
-                    </Button>
-                </div>
             </div>
         </Theme>
     );
