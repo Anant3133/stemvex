@@ -1,7 +1,7 @@
 /* Graph Generator Add-on Styles */
 
 .container {
-    padding: 16px;
+    padding: 4px 16px 16px 16px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -273,8 +273,8 @@
 
 .paste-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 8px;
 }
 
 .clear-btn {
@@ -787,6 +787,20 @@ sp-button {
 sp-button::part(button) {
     width: 100%;
     min-height: 44px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    border-radius: 9999px !important;
+}
+
+/* CTA button color override */
+sp-button[variant="cta"] {
+    --spectrum-semantic-cta-color-background-default: #416afd;
+    --spectrum-semantic-cta-color-background-hover: #2546c7;
+    --spectrum-semantic-cta-color-background-key-focus: #2546c7;
+    --spectrum-button-m-cta-text-color: white;
+    --highcontrast-button-background-color-default: #416afd;
 }
 
 /* Customizer trigger button */
@@ -798,4 +812,24 @@ sp-button::part(button) {
 
 .action-row sp-button[variant="secondary"]:hover::part(button) {
     background: #e5e7eb;
+}
+
+/* Action Row Layout */
+.action-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.action-row sp-button {
+    flex: 1;
+}
+
+.action-row sp-button::part(button) {
+    height: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }

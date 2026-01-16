@@ -63,13 +63,13 @@ interface StatusState {
 type TabType = "custom" | "equation";
 type InputMode = "paste" | "upload";
 
-const PLOT_TYPES: { type: PlotType; label: string; icon: string }[] = [
-  { type: "line", label: "Line Chart", icon: "📈" },
-  { type: "scatter", label: "Scatter Plot", icon: "⚬" },
-  { type: "bar", label: "Bar Chart", icon: "📊" },
-  { type: "histogram", label: "Histogram", icon: "📶" },
-  { type: "boxplot", label: "Box Plot", icon: "📦" },
-  { type: "heatmap", label: "Heatmap", icon: "🔥" }
+const PLOT_TYPES: { type: PlotType; label: string }[] = [
+  { type: "line", label: "Line Chart" },
+  { type: "scatter", label: "Scatter Plot" },
+  { type: "bar", label: "Bar Chart" },
+  { type: "histogram", label: "Histogram" },
+  { type: "boxplot", label: "Box Plot" },
+  { type: "heatmap", label: "Heatmap" }
 ];
 
 const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode, onEquationUsed }) => {
@@ -316,8 +316,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
       data: parsedResult.data,
       mapping: {
         x: mapX,
-        y: mapY || undefined,
-        hue: mapHue || undefined
+        y: mapY || undefined
       },
       axes: {
         title_config: { ...titleConfig, text: title || "Custom Chart" },
@@ -406,19 +405,6 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
   return (
     <Theme system="express" scale="medium" color="light">
       <div className="container">
-        {/* Header */}
-        <div className="header">
-          <h2 className="title">📊 Graph Generator</h2>
-          <div
-            className={`server-status ${
-              serverOnline === true ? "online" : serverOnline === false ? "offline" : "checking"
-            }`}
-          >
-            <span className="status-dot"></span>
-            <span className="status-text">{serverOnline === null ? "..." : serverOnline ? "Online" : "Offline"}</span>
-          </div>
-        </div>
-
         {/* Tabs */}
         <div className="tabs">
           <div className={`tab ${activeTab === "custom" ? "active" : ""}`} onClick={() => setActiveTab("custom")}>
@@ -449,11 +435,13 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                 <select
                   className="native-select"
                   value={selectedPlotType}
-                  onChange={e => setSelectedPlotType(e.target.value as PlotType)}
+                  onChange={e => {
+                    setSelectedPlotType(e.target.value as PlotType);
+                  }}
                 >
                   {PLOT_TYPES.map(pt => (
                     <option key={pt.type} value={pt.type}>
-                      {pt.icon} {pt.label}
+                      {pt.label}
                     </option>
                   ))}
                 </select>
@@ -481,13 +469,13 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                     className={`mode-btn ${inputMode === "paste" ? "active" : ""}`}
                     onClick={() => setInputMode("paste")}
                   >
-                    📋 Paste
+                    Paste
                   </button>
                   <button
                     className={`mode-btn ${inputMode === "upload" ? "active" : ""}`}
                     onClick={() => setInputMode("upload")}
                   >
-                    📁 Upload
+                    Upload
                   </button>
                 </div>
               </div>
@@ -500,9 +488,9 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                       Load Sample
                     </Button>
                     {customCsv && (
-                      <button className="clear-btn" onClick={handleClearData}>
-                        ✕ Clear
-                      </button>
+                      <Button variant="secondary" onClick={handleClearData}>
+                        Clear
+                      </Button>
                     )}
                   </div>
                   <textarea
@@ -628,7 +616,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                 <div className="mapping-grid">
                   <div className="map-item">
                     <label>
-                      X Axis <span className="required">*</span>
+                      {selectedPlotType === "heatmap" ? "Column" : "X Axis"} <span className="required">*</span>
                     </label>
                     <select className="native-select small" value={mapX} onChange={e => setMapX(e.target.value)}>
                       <option value="">(Select)</option>
@@ -640,10 +628,11 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                     </select>
                   </div>
 
+                  {/* Y Axis - not shown for histogram */}
                   {selectedPlotType !== "histogram" && (
                     <div className="map-item">
                       <label>
-                        Y Axis <span className="required">*</span>
+                        {selectedPlotType === "heatmap" ? "Row" : "Y Axis"} <span className="required">*</span>
                       </label>
                       <select className="native-select small" value={mapY} onChange={e => setMapY(e.target.value)}>
                         <option value="">(Select)</option>
@@ -655,18 +644,6 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                       </select>
                     </div>
                   )}
-
-                  <div className="map-item">
-                    <label>Hue (Color)</label>
-                    <select className="native-select small" value={mapHue} onChange={e => setMapHue(e.target.value)}>
-                      <option value="">(None)</option>
-                      {parsedResult.data.columns.map(c => (
-                        <option key={c} value={c}>
-                          {c} [{getTypeBadge(c)}]
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </div>
             )}
@@ -679,10 +656,31 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                   handleGenerateCustom();
                 }}
               >
-                Generate Custom Chart
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    height: "100%"
+                  }}
+                >
+                  Generate Chart
+                </span>
               </Button>
               <Button variant="secondary" onClick={() => setShowCustomizer(true)}>
-                Customize
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    height: "100%",
+                    textAlign: "center"
+                  }}
+                >
+                  Customize
+                </span>
               </Button>
             </div>
           </div>
@@ -776,7 +774,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
                   handleGenerateEquation();
                 }}
               >
-                📈 Generate Equation Graph
+                Generate Equation Graph
               </Button>
             </div>
           </div>

@@ -134,6 +134,11 @@ class BoxplotRenderer(BaseRenderer):
         
         sns_kwargs = self.get_seaborn_kwargs(style)
         
+        # Remove alpha - boxplot doesn't support it directly
+        sns_kwargs.pop("alpha", None)
+        # Remove linewidth - boxplot uses different param names
+        sns_kwargs.pop("linewidth", None)
+        
         sns.boxplot(
             data=df,
             x=x_col,

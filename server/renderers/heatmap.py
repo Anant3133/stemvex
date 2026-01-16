@@ -32,12 +32,9 @@ class HeatmapRenderer(BaseRenderer):
         Render a heatmap.
         
         For heatmaps, the data is expected to be pivotable:
-        - x: column for x-axis categories
-        - y: column for y-axis categories  
-        - hue or a third column: values to display
-        
-        If the data is already in matrix form (columns are x, rows are y),
-        use x as the value column name.
+        - x: column for x-axis categories (columns in heatmap)
+        - y: column for y-axis categories (rows in heatmap)
+        - hue: values to display (the numeric data)
         
         Args:
             df: DataFrame containing the plot data
@@ -58,29 +55,33 @@ class HeatmapRenderer(BaseRenderer):
         
         x_col = mapping.x
         y_col = mapping.y
+        value_col = mapping.hue  # For heatmaps, hue is the value column
         
         # Prepare the heatmap data
-        if y_col is not None and mapping.hue is not None:
-            # Pivot the data: x becomes columns, y becomes rows, hue becomes values
-            pivot_data = df.pivot_table(
-                index=y_col,
-                columns=x_col,
-                values=mapping.hue,
-                aggfunc="mean",
-            )
-        elif y_col is not None:
-            # Assume we should count occurrences
-            pivot_data = df.pivot_table(
-                index=y_col,
-                columns=x_col,
-                aggfunc="size",
-                fill_value=0,
-            )
-        else:
-            # Assume df is already in matrix form with x as the column to use
-            # or just use the entire numeric data
-            numeric_cols = df.select_dtypes(include=["number"]).columns
-            pivot_data = df[numeric_cols]
+        try:
+            if y_col is not None and value_col is not None:
+                # Ensure value column is numeric
+                df_copy = df.copy()
+                df_copy[value_col] = pd.to_numeric(df_copy[value_col], errors='coerce')
+                
+                # Pivot the data: x becomes columns, y becomes rows, value_col becomes values
+                pivot_data = df_copy.pivot_table(
+                    index=y_col,
+                    columns=x_col,
+                    values=value_col,
+                    aggfunc="mean",
+                )
+            elif y_col is not None:
+                # Count occurrences (crosstab style)
+                pivot_data = pd.crosstab(df[y_col], df[x_col])
+            else:
+                # Assume df is already in matrix form
+                numeric_cols = df.select_dtypes(include=["number"]).columns
+                pivot_data = df[numeric_cols]
+        except Exception as e:
+            raise ValueError(f"Failed to pivot data for heatmap: {e}. "
+                           f"Ensure X ({x_col}) and Y ({y_col}) are categorical columns, "
+                           f"and Value ({value_col}) is numeric.")
         
         if self.use_seaborn:
             self._render_seaborn(pivot_data, ax, style)
