@@ -79,6 +79,10 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Color state
+  const [globalColor, setGlobalColor] = useState<string>("#000000");
+  const [individualColors, setIndividualColors] = useState<Record<number, string>>({});
+
   // Debounce ref
   // @ts-ignore
   const debounceTimerRef = useRef<any>(null);
@@ -170,10 +174,10 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({
   const totalPages = Math.ceil(mathTokens.length / ITEMS_PER_PAGE);
   const displayedTokens = mathTokens.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
-  const handleInsertEquation = async (latex: string, x = 50, y = 50) => {
+  const handleInsertEquation = async (latex: string, color: string, x = 50, y = 50) => {
     const engine = new MathEngine();
     try {
-      const result = await engine.convertToPNG(latex);
+      const result = await engine.convertToPNG(latex, color);
       const arrayBuffer = await result.imageData.arrayBuffer();
 
       const sandboxApi = await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(RuntimeType.documentSandbox);
@@ -195,8 +199,10 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({
     let currentY = 50;
     const PAGE_LIMIT_HEIGHT = 600;
 
-    for (const token of mathTokens) {
-      const dims = await handleInsertEquation(token.content, currentX, currentY);
+    for (let i = 0; i < mathTokens.length; i++) {
+      const token = mathTokens[i];
+      const tokenColor = individualColors[i] || globalColor;
+      const dims = await handleInsertEquation(token.content, tokenColor, currentX, currentY);
       if (dims) {
         currentY += dims.height + 30; // 30px gap
 
@@ -432,53 +438,80 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {displayedTokens.map((token, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: "8px",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "6px",
-                  background: "#f8fafc",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "8px"
-                }}
-              >
+            {displayedTokens.map((token, idx) => {
+              const actualIndex = (currentPage - 1) * ITEMS_PER_PAGE + idx;
+              const currentColor = individualColors[actualIndex] || globalColor;
+              return (
                 <div
-                  dangerouslySetInnerHTML={{
-                    __html: katex.renderToString(token.content, {
-                      throwOnError: false
-                    })
+                  key={idx}
+                  style={{
+                    padding: "8px",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "6px",
+                    background: "#f8fafc",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    position: "relative"
                   }}
-                  style={{ fontSize: "14px", overflowX: "auto" }}
-                />
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <button
-                    onClick={() => handleInsertEquation(token.content)}
+                >
+                  <input
+                    type="color"
+                    value={currentColor}
+                    onChange={e => {
+                      setIndividualColors(prev => ({
+                        ...prev,
+                        [actualIndex]: e.target.value
+                      }));
+                    }}
                     style={{
-                      fontSize: "11px",
-                      padding: "6px 10px",
-                      background: "#fff",
+                      position: "absolute",
+                      bottom: "8px",
+                      right: "8px",
+                      width: "20px",
+                      height: "20px",
+                      padding: 0,
                       border: "1px solid #cbd5e0",
                       borderRadius: "4px",
                       cursor: "pointer"
                     }}
-                  >
-                    Insert
-                  </button>
+                    title="Set color for this equation"
+                  />
                   <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#475569",
-                      fontWeight: 600
+                    dangerouslySetInnerHTML={{
+                      __html: katex.renderToString(token.content, {
+                        throwOnError: false
+                      })
                     }}
-                  >
-                    {classifyEquation(token.content)}
+                    style={{ fontSize: "14px", overflowX: "auto", color: currentColor, paddingRight: "36px" }}
+                  />
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <button
+                      onClick={() => handleInsertEquation(token.content, currentColor)}
+                      style={{
+                        fontSize: "11px",
+                        padding: "6px 10px",
+                        background: "#fff",
+                        border: "1px solid #cbd5e0",
+                        borderRadius: "4px",
+                        cursor: "pointer"
+                      }}
+                    >
+                      Insert
+                    </button>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        color: "#475569",
+                        fontWeight: 600
+                      }}
+                    >
+                      {classifyEquation(token.content)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
