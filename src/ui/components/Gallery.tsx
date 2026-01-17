@@ -1,22 +1,34 @@
 import React from "react";
-import { PlotType } from "../../services/plotService";
+import { 
+    PlotType, 
+    StyleConfig, 
+    GridConfig, 
+    LegendConfig,
+    DEFAULT_CUSTOMIZATION 
+} from "../../services/plotService";
 import { Button } from "@swc-react/button";
+
+export interface TemplateConfig {
+    plotType: PlotType;
+    csv: string;
+    mapX: string;
+    mapY: string;
+    mapHue?: string;
+    title: string;
+    xLabel: string;
+    yLabel: string;
+    // Customization options
+    style?: Partial<StyleConfig>;
+    grid?: Partial<GridConfig>;
+    legend?: Partial<LegendConfig>;
+}
 
 export interface Template {
     id: string;
     title: string;
     description: string;
     icon: string;
-    config: {
-        plotType: PlotType;
-        csv: string;
-        mapX: string;
-        mapY: string;
-        mapHue?: string;
-        title: string;
-        xLabel: string;
-        yLabel: string;
-    };
+    config: TemplateConfig;
 }
 
 const TEMPLATES: Template[] = [
@@ -44,7 +56,22 @@ Dec,95000,62000`,
             mapY: "Revenue",
             title: "Monthly Revenue Growth 2024",
             xLabel: "Month",
-            yLabel: "Revenue ($)"
+            yLabel: "Revenue ($)",
+            style: {
+                linewidth: 2.5,
+                marker: "o",
+                marker_size: 60,
+                palette: "deep"
+            },
+            grid: {
+                show: true,
+                style: "dashed",
+                alpha: 0.5
+            },
+            legend: {
+                show: true,
+                position: "upper left"
+            }
         }
     },
     {
@@ -72,7 +99,23 @@ Dec,95000,62000`,
             mapHue: "Group",
             title: "Height vs Weight Distribution",
             xLabel: "Height (cm)",
-            yLabel: "Weight (kg)"
+            yLabel: "Weight (kg)",
+            style: {
+                marker_size: 100,
+                alpha: 0.8,
+                palette: "Set1",
+                edgecolor: "#333333",
+                edgewidth: 0.5
+            },
+            grid: {
+                show: true,
+                style: "dotted",
+                alpha: 0.4
+            },
+            legend: {
+                show: true,
+                position: "best"
+            }
         }
     },
     {
@@ -97,7 +140,24 @@ Facebook,980,35+`,
             mapHue: "Age_Group",
             title: "Social Media Usage by Age Group",
             xLabel: "Platform",
-            yLabel: "Number of Users"
+            yLabel: "Number of Users",
+            style: {
+                bar_width: 0.8,
+                alpha: 0.9,
+                palette: "Set2",
+                edgecolor: "#ffffff",
+                edgewidth: 1
+            },
+            grid: {
+                show: true,
+                axis: "y",
+                style: "solid",
+                alpha: 0.3
+            },
+            legend: {
+                show: true,
+                position: "upper right"
+            }
         }
     },
     {
@@ -128,7 +188,18 @@ Fri,Evening,80`,
             mapHue: "Activity_Level",
             title: "Weekly User Activity Heatmap",
             xLabel: "Time of Day",
-            yLabel: "Day of Week"
+            yLabel: "Day of Week",
+            style: {
+                palette: "viridis",
+                alpha: 1.0
+            },
+            grid: {
+                show: false
+            },
+            legend: {
+                show: true,
+                position: "center right"
+            }
         }
     },
     {
@@ -163,7 +234,20 @@ Books,30`,
             mapY: "Price",
             title: "Product Price Distribution by Category",
             xLabel: "Category",
-            yLabel: "Price ($)"
+            yLabel: "Price ($)",
+            style: {
+                palette: "pastel",
+                linewidth: 1.5
+            },
+            grid: {
+                show: true,
+                axis: "y",
+                style: "dashed",
+                alpha: 0.5
+            },
+            legend: {
+                show: false
+            }
         }
     }
 ];
@@ -183,8 +267,8 @@ export const Gallery: React.FC<GalleryProps> = ({ onSelectTemplate }) => {
             </div>
 
             <div className="templates-grid" style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+                display: "flex",
+                flexDirection: "column",
                 gap: "16px",
                 marginTop: "16px"
             }}>
@@ -200,8 +284,7 @@ export const Gallery: React.FC<GalleryProps> = ({ onSelectTemplate }) => {
                             transition: "transform 0.2s, box-shadow 0.2s",
                             backgroundColor: "white",
                             display: "flex",
-                            flexDirection: "column",
-                            height: "100%"
+                            flexDirection: "column"
                         }}
                         onClick={() => onSelectTemplate(template)}
                         onMouseEnter={(e) => {

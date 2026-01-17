@@ -253,17 +253,7 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({
             marginBottom: "8px"
           }}
         >
-          📷 Scan from Image
-        </div>
-        <div
-          style={{
-            fontSize: "10px",
-            color: "#64748b",
-            marginBottom: "8px",
-            fontStyle: "italic"
-          }}
-        >
-          ℹ️ Uses Cloud AI (Gemini/OpenAI) for high-accuracy text & math extraction.
+          Scan from Image
         </div>
 
         <input
@@ -349,7 +339,7 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({
             marginBottom: "8px"
           }}
         >
-          📝 Parse Text & Formulas
+          Parse Text & Formulas
         </div>
         <textarea
           value={savedInputText}

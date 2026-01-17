@@ -2,6 +2,7 @@
 
 .container {
     padding: 4px 16px 16px 16px;
+    margin: 0 -15px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -11,6 +12,8 @@
 /* Tabs */
 .tabs {
     display: flex;
+    justify-content: center;
+    align-items: stretch;
     border-bottom: 2px solid #e0e0e0;
     margin: 0 auto 8px auto;
     width: fit-content;
@@ -24,6 +27,10 @@
     color: #707070;
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .tab.active {
@@ -148,12 +155,12 @@
 .equation-examples {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
 }
 
 .example-btn {
-    padding: 4px 10px;
-    font-size: 11px;
+    padding: 6px 14px;
+    font-size: 12px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 4px;

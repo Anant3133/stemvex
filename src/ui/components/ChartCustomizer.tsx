@@ -107,7 +107,7 @@ export const ChartCustomizer: React.FC<ChartCustomizerProps> = ({
     <div className="customizer-panel">
       {/* Header */}
       <div className="customizer-header">
-        <h3>⚙️ Chart Settings</h3>
+        <h3>Chart Settings</h3>
         <button className="close-btn" onClick={onClose}>
           ✕
         </button>
@@ -116,7 +116,7 @@ export const ChartCustomizer: React.FC<ChartCustomizerProps> = ({
       <div className="customizer-content">
         {/* Figure Settings */}
         <div className="customizer-section">
-          {renderSectionHeader("figure", "Figure", "📐")}
+          {renderSectionHeader("figure", "Figure", "")}
           {sections.figure && (
             <div className="section-content">
               <div className="input-row">
@@ -190,7 +190,7 @@ export const ChartCustomizer: React.FC<ChartCustomizerProps> = ({
 
         {/* Title & Labels */}
         <div className="customizer-section">
-          {renderSectionHeader("title", "Title & Labels", "🏷️")}
+          {renderSectionHeader("title", "Title & Labels", "")}
           {sections.title && (
             <div className="section-content">
               <div className="input-row">
@@ -307,7 +307,7 @@ export const ChartCustomizer: React.FC<ChartCustomizerProps> = ({
 
         {/* Grid Settings */}
         <div className="customizer-section">
-          {renderSectionHeader("grid", "Grid", "⊞")}
+          {renderSectionHeader("grid", "Grid", "")}
           {sections.grid && (
             <div className="section-content">
               <div className="input-row">
@@ -376,7 +376,7 @@ export const ChartCustomizer: React.FC<ChartCustomizerProps> = ({
 
         {/* Legend Settings */}
         <div className="customizer-section">
-          {renderSectionHeader("legend", "Legend", "☰")}
+          {renderSectionHeader("legend", "Legend", "")}
           {sections.legend && (
             <div className="section-content">
               <div className="input-row">
@@ -447,7 +447,7 @@ export const ChartCustomizer: React.FC<ChartCustomizerProps> = ({
 
         {/* Colors & Style */}
         <div className="customizer-section">
-          {renderSectionHeader("style", "Colors & Style", "🎨")}
+          {renderSectionHeader("style", "Colors & Style", "")}
           {sections.style && (
             <div className="section-content">
               <div className="input-row">
@@ -550,7 +550,7 @@ export const ChartCustomizer: React.FC<ChartCustomizerProps> = ({
 
         {/* Axis Spines */}
         <div className="customizer-section">
-          {renderSectionHeader("spines", "Axis Borders", "▢")}
+          {renderSectionHeader("spines", "Axis Borders", "")}
           {sections.spines && (
             <div className="section-content">
               <div className="spine-grid">

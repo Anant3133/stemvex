@@ -76,30 +76,31 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: #f9fafb;
+    background: #6b7280;
     cursor: pointer;
     user-select: none;
     transition: background 0.15s;
 }
 
 .section-header:hover {
-    background: #f3f4f6;
+    background: #7c8491;
 }
 
 .section-icon {
     font-size: 14px;
+    color: #ffffff;
 }
 
 .section-title {
     flex: 1;
     font-size: 13px;
     font-weight: 600;
-    color: #374151;
+    color: #ffffff;
 }
 
 .section-arrow {
     font-size: 10px;
-    color: #9ca3af;
+    color: #ffffff;
     transition: transform 0.2s;
 }
 
