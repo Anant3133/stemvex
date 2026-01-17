@@ -29,6 +29,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGr
   const [success, setSuccess] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category>("calculus");
   const [preview, setPreview] = useState("");
+  const [color, setColor] = useState<string>("#000000");
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mathEngineRef = useRef<MathEngine | null>(null);
@@ -74,7 +75,7 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGr
     setIsProcessing(true);
 
     try {
-      const mathResult = await getMathEngine().convertToPNG(cleanedLatex);
+      const mathResult = await getMathEngine().convertToPNG(cleanedLatex, color);
       const arrayBuffer = await mathResult.imageData.arrayBuffer();
       const sandboxApi = await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(RuntimeType.documentSandbox);
 
@@ -488,15 +489,18 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGr
       {/* Live Preview */}
       {/* Live Preview */}
       <div style={{ marginBottom: "16px" }}>
-        <div
-          style={{
-            fontSize: "12px",
-            fontWeight: 600,
-            color: "#374151",
-            marginBottom: "6px"
-          }}
-        >
-          Live Preview
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+          <div style={{ fontSize: "12px", fontWeight: 600, color: "#374151" }}>Live Preview</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label style={{ fontSize: "12px", color: "#374151", fontWeight: 600 }}>Color</label>
+            <input
+              aria-label="Equation color"
+              type="color"
+              value={color}
+              onChange={e => setColor(e.target.value)}
+              style={{ width: 36, height: 28, padding: 0, border: "none", background: "transparent", cursor: "pointer" }}
+            />
+          </div>
         </div>
         <div
           style={{
@@ -515,7 +519,8 @@ export const MathInput: React.FC<MathInputProps> = ({ addOnUISdk, onNavigateToGr
           <div
             style={{
               fontSize: "20px",
-              maxWidth: "100%"
+              maxWidth: "100%",
+              color: color
             }}
             dangerouslySetInnerHTML={{ __html: preview }}
           />

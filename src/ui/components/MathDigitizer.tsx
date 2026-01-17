@@ -333,13 +333,52 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({
       <div style={{ marginBottom: "16px" }}>
         <div
           style={{
-            fontSize: "12px",
-            fontWeight: 600,
-            color: "#475569",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
             marginBottom: "8px"
           }}
         >
-          Parse Text & Formulas
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: 600,
+              color: "#475569"
+            }}
+          >
+            Parse Text & Formulas
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                const sandboxApi = await addOnUISdk.instance.runtime.apiProxy<DocumentSandboxApi>(
+                  RuntimeType.documentSandbox
+                );
+                const selectedText = await sandboxApi.getSelectedText();
+                if (selectedText) {
+                  setSavedInputText(selectedText);
+                  handleAnalyze(selectedText);
+                } else {
+                  alert("No text selected in document");
+                }
+              } catch (err) {
+                console.error("Import selection error:", err);
+                alert("Failed to import selected text");
+              }
+            }}
+            style={{
+              fontSize: "11px",
+              padding: "4px 10px",
+              background: "#416afd",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer",
+              fontWeight: 600
+            }}
+          >
+            Import Selection
+          </button>
         </div>
         <textarea
           value={savedInputText}
@@ -357,7 +396,6 @@ export const MathDigitizer: React.FC<MathDigitizerProps> = ({
             boxSizing: "border-box"
           }}
         />
-        {/* Button Removed per request */}
       </div>
 
       {/* Results */}
