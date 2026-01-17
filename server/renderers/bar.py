@@ -170,5 +170,6 @@ class BarRenderer(BaseRenderer):
             y=y_col,
             hue=hue_col,
             ax=ax,
+            width=style.bar_width if style and style.bar_width else 0.8,
             **sns_kwargs,
         )

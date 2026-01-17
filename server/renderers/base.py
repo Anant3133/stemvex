@@ -396,11 +396,21 @@ class BaseRenderer(ABC):
         if style.palette is not None:
             kwargs["palette"] = style.palette
         
+        # Add color support - used when no hue mapping or as base color
+        if style.color is not None:
+            kwargs["color"] = style.color
+        
         if style.alpha is not None:
             kwargs["alpha"] = style.alpha
         
         if style.linewidth is not None:
             kwargs["linewidth"] = style.linewidth
+        
+        if style.edgecolor is not None:
+            kwargs["edgecolor"] = style.edgecolor
+            
+        if style.edgewidth is not None:
+            kwargs["linewidth"] = style.edgewidth  # Seaborn uses linewidth for edge
         
         # Note: marker and marker_size ('s') are handled in scatter/line renderers only
         

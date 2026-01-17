@@ -395,10 +395,10 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
       style: styleConfig,
       figure: useThemeColors
         ? {
-            ...figureConfig,
-            background: currentTheme.background,
-            transparent: figureConfig.transparent
-          }
+          ...figureConfig,
+          background: currentTheme.background,
+          transparent: figureConfig.transparent
+        }
         : figureConfig,
       font: fontConfig
     };
@@ -433,11 +433,14 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
         request.axes.spines = { ...spineConfig, color: textColor };
       }
 
-      // Update Style (Accent Color)
+      // Update Style (Accent Color) - only if user hasn't set a custom color
       if (request.style) {
-        request.style.color = currentTheme.accent;
-        // Keep user selection if they picked a specific palette,
-        // otherwise we could potentially force a palette that looks good on dark mode
+        // Only override with theme accent if user hasn't customized the color
+        // (i.e., color is still the default or undefined)
+        if (!styleConfig.color) {
+          request.style.color = currentTheme.accent;
+        }
+        // Preserve user's palette selection
       }
     }
 
@@ -525,20 +528,22 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
     setXLabelConfig({ ...xLabelConfig, text: config.xLabel });
     setYLabelConfig({ ...yLabelConfig, text: config.yLabel });
 
-    // 5. Apply Style Customizations from template
-    if (config.style) {
-      setStyleConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.style, ...prev, ...config.style }));
-    }
+    // 5. Reset customization to defaults then apply template-specific settings
+    // This ensures previous template settings don't bleed through
+    setStyleConfig({
+      ...DEFAULT_CUSTOMIZATION.style,
+      ...(config.style || {})
+    });
 
-    // 6. Apply Grid Customizations from template
-    if (config.grid) {
-      setGridConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.grid, ...prev, ...config.grid }));
-    }
+    setGridConfig({
+      ...DEFAULT_CUSTOMIZATION.grid,
+      ...(config.grid || {})
+    });
 
-    // 7. Apply Legend Customizations from template
-    if (config.legend) {
-      setLegendConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.legend, ...prev, ...config.legend }));
-    }
+    setLegendConfig({
+      ...DEFAULT_CUSTOMIZATION.legend,
+      ...(config.legend || {})
+    });
 
     // 8. Parse Data
     try {
