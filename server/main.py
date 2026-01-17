@@ -25,6 +25,7 @@ from fastapi.responses import JSONResponse
 
 from plot_router import router as plot_router
 from equation_router import router as equation_router
+from ai_router import router as ai_router
 
 
 # Server version
@@ -85,6 +86,9 @@ app.include_router(plot_router)
 
 # Include the equation router
 app.include_router(equation_router)
+
+# Include the AI router
+app.include_router(ai_router)
 
 
 @app.get(

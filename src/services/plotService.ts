@@ -6,7 +6,9 @@
  */
 
 // Server URL - update this for production
-const PLOT_SERVER_URL = "http://localhost:8000";
+// Server URL - update this for production
+export const BASE_URL = "http://localhost:8000";
+const PLOT_SERVER_URL = BASE_URL;
 
 // =============================================================================
 // Type Definitions

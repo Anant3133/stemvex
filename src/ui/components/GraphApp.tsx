@@ -28,7 +28,8 @@ import {
   LegendConfig,
   SpineConfig,
   StyleConfig,
-  DEFAULT_CUSTOMIZATION
+  DEFAULT_CUSTOMIZATION,
+  BASE_URL
 } from "../../services/plotService";
 import {
   parseFile,
@@ -45,6 +46,8 @@ import {
   EquationPlotRequest
 } from "../../services/equationPlotService";
 import ChartCustomizer from "./ChartCustomizer";
+import { AiInput } from "./AiInput";
+import { Gallery, Template } from "./Gallery";
 
 interface AppProps {
   addOnUISdk: AddOnSDKAPI;
@@ -60,8 +63,34 @@ interface StatusState {
   message: string;
 }
 
-type TabType = "custom" | "equation";
+type TabType = "custom" | "equation" | "ai" | "gallery";
 type InputMode = "paste" | "upload";
+
+// Theme configuration
+interface ThemeColors {
+  background: string;
+  text: string;
+  accent: string;
+  grid: string;
+  isDark: boolean;
+}
+
+const THEMES: Record<string, ThemeColors> = {
+  light: {
+    background: "#ffffff",
+    text: "#222222",
+    accent: "#378ef0",
+    grid: "#cccccc",
+    isDark: false
+  },
+  dark: {
+    background: "#1e1e1e",
+    text: "#ffffff",
+    accent: "#378ef0",
+    grid: "#555555",
+    isDark: true
+  }
+};
 
 const PLOT_TYPES: { type: PlotType; label: string }[] = [
   { type: "line", label: "Line Chart" },
@@ -100,6 +129,10 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
   const [mapY, setMapY] = useState<string>("");
   const [mapHue, setMapHue] = useState<string>("");
 
+  // Theme Sync State
+  const [currentTheme, setCurrentTheme] = useState<ThemeColors>(THEMES.light);
+  const [useThemeColors, setUseThemeColors] = useState<boolean>(true);
+
   // Preview state
   const [showAllPreview, setShowAllPreview] = useState<boolean>(false);
 
@@ -123,6 +156,9 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
   const [legendConfig, setLegendConfig] = useState<LegendConfig>(DEFAULT_CUSTOMIZATION.legend);
   const [spineConfig, setSpineConfig] = useState<SpineConfig>(DEFAULT_CUSTOMIZATION.spines);
   const [styleConfig, setStyleConfig] = useState<StyleConfig>(DEFAULT_CUSTOMIZATION.style);
+
+  // AI State
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   // Handle prefilled equation
   useEffect(() => {
@@ -166,6 +202,35 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
     const interval = setInterval(checkServerHealth, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  // Theme Detection
+  useEffect(() => {
+    const updateTheme = () => {
+      try {
+        // Try to get theme from SDK
+        // Note: The SDK might return 'light', 'dark', 'lightest', 'darkest', etc.
+        const sdkTheme = addOnUISdk.app.ui.theme;
+        const themeString = String(sdkTheme).toLowerCase();
+
+        console.log("Detected theme:", themeString);
+
+        if (themeString.includes("dark")) {
+          setCurrentTheme(THEMES.dark);
+        } else {
+          setCurrentTheme(THEMES.light);
+        }
+      } catch (e) {
+        console.warn("Could not detect theme, defaulting to light", e);
+      }
+    };
+
+    // Initial check
+    updateTheme();
+
+    // Listen for changes (if SDK supports event listener for theme)
+    // Currently we just check on mount, but in a real app we might poll or use an event
+
+  }, [addOnUISdk]);
 
   // Auto-parse CSV text when it changes
   useEffect(() => {
@@ -328,9 +393,51 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
         spines: spineConfig
       },
       style: styleConfig,
-      figure: figureConfig,
+      figure: useThemeColors ? {
+        ...figureConfig,
+        background: currentTheme.background,
+        // Make transparent if user wants, but default to theme bg
+        transparent: figureConfig.transparent
+      } : figureConfig,
       font: fontConfig
     };
+
+    // Apply theme colors to components if enabled
+    if (useThemeColors) {
+      if (request.axes) {
+        const textColor = currentTheme.text;
+        const noteColor = currentTheme.isDark ? "#aaaaaa" : "#666666";
+
+        // Update Title
+        request.axes.title_config = {
+          ...titleConfig,
+          text: title || "Custom Chart",
+          color: textColor
+        };
+
+        // Update Labels
+        request.axes.x_label_config = { ...xLabelConfig, text: mapX, color: textColor };
+        request.axes.y_label_config = { ...yLabelConfig, text: mapY, color: textColor };
+
+        // Update Ticks
+        request.axes.tick_config = { ...tickConfig, color: noteColor };
+
+        // Update Grid
+        if (typeof request.axes.grid === 'object') { // Check if it's the config object
+          request.axes.grid = { ...gridConfig, color: currentTheme.grid };
+        }
+
+        // Update Spines
+        request.axes.spines = { ...spineConfig, color: textColor };
+      }
+
+      // Update Style (Accent Color)
+      if (request.style) {
+        request.style.color = currentTheme.accent;
+        // Keep user selection if they picked a specific palette, 
+        // otherwise we could potentially force a palette that looks good on dark mode
+      }
+    }
 
     try {
       setDebugInfo("Sending custom request...");
@@ -366,9 +473,12 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
         latex: equationLatex,
         x_min: xMin,
         x_max: xMax,
-        color: equationColor,
+        color: useThemeColors ? currentTheme.accent : equationColor,
         grid: showGrid
       };
+
+      // For equation plots, we might want to pass background too if the API supported it
+      // Currently EquationPlotRequest is simpler than PlotRequest
 
       setDebugInfo("Sending equation to server...");
       const pngBlob = await renderEquationPng(request);
@@ -383,6 +493,127 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
       const errorMessage = error instanceof Error ? error.message : String(error);
       setStatus({ type: "error", message: errorMessage });
       setDebugInfo(`Error: ${errorMessage}`);
+    }
+  };
+
+
+
+  /**
+   * Handle Template Selection
+   */
+  const handleTemplateSelect = (template: Template) => {
+    const config = template.config;
+
+    // 1. Set CSV Data
+    setCustomCsv(config.csv);
+    setInputMode("paste");
+
+    // 2. Set Mappings
+    setMapX(config.mapX);
+    setMapY(config.mapY);
+    if (config.mapHue) setMapHue(config.mapHue);
+
+    // 3. Set Plot Type
+    setSelectedPlotType(config.plotType);
+
+    // 4. Set Title & Labels
+    setTitle(config.title);
+    setXLabelConfig({ ...xLabelConfig, text: config.xLabel });
+    setYLabelConfig({ ...yLabelConfig, text: config.yLabel });
+
+    // 5. Parse Data
+    try {
+      const parsed = parseCSVText(config.csv);
+      setParsedResult(parsed);
+
+      // 6. Switch to Custom Tab
+      setActiveTab("custom");
+
+      // 7. Auto-Generate (Optional: Gives immediate feedback)
+      setStatus({ type: "success", message: `Loaded template: ${template.title}` });
+      setTimeout(() => {
+        setStatus({ type: "idle", message: "" });
+        // We could auto-generate here, but we need state updates to flush first.
+        // For now, let's just show the user the data is ready.
+        // Or we can use a ref or effect to trigger generation.
+      }, 2000);
+
+    } catch (e) {
+      console.error("Failed to load template", e);
+      setStatus({ type: "error", message: "Failed to load template data" });
+    }
+  };
+
+  /**
+   * Handle AI Generation
+   */
+  const handleAiGenerate = async (prompt: string) => {
+    setIsAiLoading(true);
+    setStatus({ type: "loading", message: "Asking Gemini..." });
+    setDebugInfo(`Sending prompt: ${prompt}`);
+
+    try {
+      const response = await fetch(`${BASE_URL}/ai/generate-chart`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "AI failed to generate chart");
+      }
+
+      console.log("AI Config:", result.config);
+      const config = result.config;
+
+      // 1. Populate custom data
+      const csvContent = [
+        config.data.columns.join(","),
+        ...config.data.rows.map((row: any[]) => row.join(","))
+      ].join("\n");
+
+      setCustomCsv(csvContent);
+      setInputMode("paste");
+
+      // 2. Set Mappings
+      setMapX(config.mapping.x);
+      setMapY(config.mapping.y);
+      if (config.mapping.hue) setMapHue(config.mapping.hue);
+
+      // 3. Set Plot Type
+      if (config.plot && config.plot.type) {
+        // Validates if the returned type is one of our supported types
+        const isValidType = PLOT_TYPES.some(pt => pt.type === config.plot.type);
+        if (isValidType) setSelectedPlotType(config.plot.type);
+      }
+
+      // 4. Set Title
+      if (config.axes && config.axes.title) {
+        setTitle(config.axes.title);
+      }
+
+      // 5. Parse the new data
+      try {
+        const parsed = parseCSVText(csvContent);
+        setParsedResult(parsed);
+      } catch (e) {
+        console.error("Failed to parse AI CSV", e);
+      }
+
+      // 6. Switch to custom tab to show result
+      setActiveTab("custom");
+      setStatus({ type: "success", message: "Chart generated by AI! Review below." });
+      setTimeout(() => setStatus({ type: "idle", message: "" }), 4000);
+
+    } catch (error) {
+      console.error("AI Error:", error);
+      const msg = error instanceof Error ? error.message : String(error);
+      setStatus({ type: "error", message: msg });
+      setDebugInfo(`AI Error: ${msg}`);
+    } finally {
+      setIsAiLoading(false);
     }
   };
 
@@ -413,6 +644,12 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
           <div className={`tab ${activeTab === "equation" ? "active" : ""}`} onClick={() => setActiveTab("equation")}>
             Equation
           </div>
+          <div className={`tab ${activeTab === "gallery" ? "active" : ""}`} onClick={() => setActiveTab("gallery")}>
+            📚 Gallery
+          </div>
+          <div className={`tab ${activeTab === "ai" ? "active" : ""}`} onClick={() => setActiveTab("ai")}>
+            ✨ AI Storyteller
+          </div>
         </div>
 
         {/* Status Message */}
@@ -428,6 +665,27 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
         {/* Custom Data Tab */}
         {activeTab === "custom" && (
           <div className="section custom-section">
+            {/* Theme Toggle */}
+            <div className="form-group">
+              <div className="option-row" style={{ marginBottom: '10px', padding: '8px', background: currentTheme.isDark ? '#333' : '#f5f5f5', borderRadius: '4px' }}>
+                <label className="option-label" style={{ width: '100%' }}>
+                  <input
+                    type="checkbox"
+                    checked={useThemeColors}
+                    onChange={e => setUseThemeColors(e.target.checked)}
+                  />
+                  <span>
+                    Sync with Theme ({currentTheme.isDark ? 'Dark' : 'Light'})
+                  </span>
+                  <span style={{ marginLeft: 'auto', display: 'flex', gap: '5px' }}>
+                    <div style={{ width: 16, height: 16, background: currentTheme.background, border: '1px solid #ccc', borderRadius: '50%' }} title="Background"></div>
+                    <div style={{ width: 16, height: 16, background: currentTheme.text, borderRadius: '50%' }} title="Text"></div>
+                    <div style={{ width: 16, height: 16, background: currentTheme.accent, borderRadius: '50%' }} title="Accent"></div>
+                  </span>
+                </label>
+              </div>
+            </div>
+
             {/* Chart Type */}
             <div className="form-group">
               <label className="field-label">Chart Type</label>
@@ -778,6 +1036,19 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
               </Button>
             </div>
           </div>
+        )}
+
+        {/* AI Tab */}
+        {activeTab === "ai" && (
+          <AiInput
+            onGenerate={handleAiGenerate}
+            isLoading={isAiLoading}
+          />
+        )}
+
+        {/* Gallery Tab */}
+        {activeTab === "gallery" && (
+          <Gallery onSelectTemplate={handleTemplateSelect} />
         )}
 
         {/* Debug Info */}
