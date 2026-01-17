@@ -200,8 +200,8 @@ async def render_equation_png(request: EquationRequest) -> Response:
         y_min = request.y_min if request.y_min is not None else auto_y_min
         y_max = request.y_max if request.y_max is not None else auto_y_max
         
-        # Create the plot
-        fig, ax = plt.subplots(figsize=(8, 6), dpi=150)
+        # Create the plot with fixed size
+        fig, ax = plt.subplots(figsize=(6, 4.5), dpi=150)
         
         # Plot the function
         ax.plot(x, y, color=request.color, linewidth=request.line_width)

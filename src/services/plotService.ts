@@ -189,8 +189,8 @@ export interface HealthResponse {
 
 export const DEFAULT_CUSTOMIZATION = {
   figure: {
-    width: 800,
-    height: 500,
+    width: 600,
+    height: 450,
     dpi: 150,
     background: "#ffffff",
     transparent: false

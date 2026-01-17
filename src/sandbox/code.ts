@@ -35,25 +35,21 @@ function start() {
 
         // ALL document mutations must be wrapped in queueAsyncEdit
         await editor.queueAsyncEdit(async () => {
-          const doc = editor.documentRoot;
-          const page = doc.pages.first;
-          const artboard = page.artboards.first;
+          // Use current insertion parent (current page/artboard context)
+          const insertionParent = editor.context.insertionParent;
 
           const imageContainer = editor.createImageContainer(bitmap, {
             initialSize: { width: data.width, height: data.height }
           });
 
+          // Add to current artboard first
+          insertionParent.children.append(imageContainer);
+
+          // Position the image
           if (data.position) {
             imageContainer.translation = { x: data.position.x, y: data.position.y };
-          } else {
-            // Center it
-            imageContainer.translation = {
-              x: artboard.width / 2 - data.width / 2,
-              y: artboard.height / 2 - data.height / 2
-            };
           }
-
-          artboard.children.append(imageContainer);
+          // If no position specified, leave at default (0, 0) on current artboard
         });
       } catch (e) {
         console.error("Failed to insert math", e);
@@ -68,21 +64,16 @@ function start() {
 
         // ALL document mutations must be wrapped in queueAsyncEdit
         await editor.queueAsyncEdit(async () => {
-          const doc = editor.documentRoot;
-          const page = doc.pages.first;
-          const artboard = page.artboards.first;
+          // Use current insertion parent (current page/artboard context)
+          const insertionParent = editor.context.insertionParent;
 
           const imageContainer = editor.createImageContainer(bitmap);
 
-          // Center the image on the artboard
-          const imgWidth = bitmap.width;
-          const imgHeight = bitmap.height;
-          imageContainer.translation = {
-            x: artboard.width / 2 - imgWidth / 2,
-            y: artboard.height / 2 - imgHeight / 2
-          };
+          // Add to current artboard
+          insertionParent.children.append(imageContainer);
 
-          artboard.children.append(imageContainer);
+          // Position at (0, 0) on current artboard by default
+          // User can move it after insertion
         });
 
         console.log("insertImage succeeded!");

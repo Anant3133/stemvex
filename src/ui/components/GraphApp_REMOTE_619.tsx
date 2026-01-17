@@ -380,8 +380,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
       data: parsedResult.data,
       mapping: {
         x: mapX,
-        y: mapY || undefined,
-        hue: mapHue || undefined
+        y: mapY || undefined
       },
       axes: {
         title_config: { ...titleConfig, text: title || "Custom Chart" },
@@ -511,11 +510,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
     // 2. Set Mappings
     setMapX(config.mapX);
     setMapY(config.mapY);
-    if (config.mapHue) {
-      setMapHue(config.mapHue);
-    } else {
-      setMapHue("");
-    }
+    if (config.mapHue) setMapHue(config.mapHue);
 
     // 3. Set Plot Type
     setSelectedPlotType(config.plotType);
@@ -525,33 +520,21 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
     setXLabelConfig({ ...xLabelConfig, text: config.xLabel });
     setYLabelConfig({ ...yLabelConfig, text: config.yLabel });
 
-    // 5. Apply Style Customizations from template
-    if (config.style) {
-      setStyleConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.style, ...prev, ...config.style }));
-    }
-
-    // 6. Apply Grid Customizations from template
-    if (config.grid) {
-      setGridConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.grid, ...prev, ...config.grid }));
-    }
-
-    // 7. Apply Legend Customizations from template
-    if (config.legend) {
-      setLegendConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.legend, ...prev, ...config.legend }));
-    }
-
-    // 8. Parse Data
+    // 5. Parse Data
     try {
       const parsed = parseCSVText(config.csv);
       setParsedResult(parsed);
 
-      // 9. Switch to Custom Tab
+      // 6. Switch to Custom Tab
       setActiveTab("custom");
 
-      // 10. Show success message
+      // 7. Auto-Generate (Optional: Gives immediate feedback)
       setStatus({ type: "success", message: `Loaded template: ${template.title}` });
       setTimeout(() => {
         setStatus({ type: "idle", message: "" });
+        // We could auto-generate here, but we need state updates to flush first.
+        // For now, let's just show the user the data is ready.
+        // Or we can use a ref or effect to trigger generation.
       }, 2000);
     } catch (e) {
       console.error("Failed to load template", e);
@@ -658,7 +641,10 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
             Equation
           </div>
           <div className={`tab ${activeTab === "gallery" ? "active" : ""}`} onClick={() => setActiveTab("gallery")}>
-            Gallery
+            📚 Gallery
+          </div>
+          <div className={`tab ${activeTab === "ai" ? "active" : ""}`} onClick={() => setActiveTab("ai")}>
+            ✨ AI Storyteller
           </div>
         </div>
 
@@ -1066,12 +1052,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
         )}
 
         {/* AI Tab */}
-        {activeTab === "ai" && (
-          <AiInput
-            onGenerate={handleAiGenerate}
-            isLoading={isAiLoading}
-          />
-        )}
+        {activeTab === "ai" && <AiInput onGenerate={handleAiGenerate} isLoading={isAiLoading} />}
 
         {/* Gallery Tab */}
         {activeTab === "gallery" && <Gallery onSelectTemplate={handleTemplateSelect} />}

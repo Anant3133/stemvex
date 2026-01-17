@@ -229,6 +229,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
 
     // Listen for changes (if SDK supports event listener for theme)
     // Currently we just check on mount, but in a real app we might poll or use an event
+
   }, [addOnUISdk]);
 
   // Auto-parse CSV text when it changes
@@ -380,8 +381,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
       data: parsedResult.data,
       mapping: {
         x: mapX,
-        y: mapY || undefined,
-        hue: mapHue || undefined
+        y: mapY || undefined
       },
       axes: {
         title_config: { ...titleConfig, text: title || "Custom Chart" },
@@ -393,13 +393,12 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
         spines: spineConfig
       },
       style: styleConfig,
-      figure: useThemeColors
-        ? {
-            ...figureConfig,
-            background: currentTheme.background,
-            transparent: figureConfig.transparent
-          }
-        : figureConfig,
+      figure: useThemeColors ? {
+        ...figureConfig,
+        background: currentTheme.background,
+        // Make transparent if user wants, but default to theme bg
+        transparent: figureConfig.transparent
+      } : figureConfig,
       font: fontConfig
     };
 
@@ -424,8 +423,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
         request.axes.tick_config = { ...tickConfig, color: noteColor };
 
         // Update Grid
-        if (typeof request.axes.grid === "object") {
-          // Check if it's the config object
+        if (typeof request.axes.grid === 'object') { // Check if it's the config object
           request.axes.grid = { ...gridConfig, color: currentTheme.grid };
         }
 
@@ -436,7 +434,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
       // Update Style (Accent Color)
       if (request.style) {
         request.style.color = currentTheme.accent;
-        // Keep user selection if they picked a specific palette,
+        // Keep user selection if they picked a specific palette, 
         // otherwise we could potentially force a palette that looks good on dark mode
       }
     }
@@ -498,6 +496,8 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
     }
   };
 
+
+
   /**
    * Handle Template Selection
    */
@@ -511,11 +511,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
     // 2. Set Mappings
     setMapX(config.mapX);
     setMapY(config.mapY);
-    if (config.mapHue) {
-      setMapHue(config.mapHue);
-    } else {
-      setMapHue("");
-    }
+    if (config.mapHue) setMapHue(config.mapHue);
 
     // 3. Set Plot Type
     setSelectedPlotType(config.plotType);
@@ -525,34 +521,23 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
     setXLabelConfig({ ...xLabelConfig, text: config.xLabel });
     setYLabelConfig({ ...yLabelConfig, text: config.yLabel });
 
-    // 5. Apply Style Customizations from template
-    if (config.style) {
-      setStyleConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.style, ...prev, ...config.style }));
-    }
-
-    // 6. Apply Grid Customizations from template
-    if (config.grid) {
-      setGridConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.grid, ...prev, ...config.grid }));
-    }
-
-    // 7. Apply Legend Customizations from template
-    if (config.legend) {
-      setLegendConfig(prev => ({ ...DEFAULT_CUSTOMIZATION.legend, ...prev, ...config.legend }));
-    }
-
-    // 8. Parse Data
+    // 5. Parse Data
     try {
       const parsed = parseCSVText(config.csv);
       setParsedResult(parsed);
 
-      // 9. Switch to Custom Tab
+      // 6. Switch to Custom Tab
       setActiveTab("custom");
 
-      // 10. Show success message
+      // 7. Auto-Generate (Optional: Gives immediate feedback)
       setStatus({ type: "success", message: `Loaded template: ${template.title}` });
       setTimeout(() => {
         setStatus({ type: "idle", message: "" });
+        // We could auto-generate here, but we need state updates to flush first.
+        // For now, let's just show the user the data is ready.
+        // Or we can use a ref or effect to trigger generation.
       }, 2000);
+
     } catch (e) {
       console.error("Failed to load template", e);
       setStatus({ type: "error", message: "Failed to load template data" });
@@ -584,9 +569,10 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
       const config = result.config;
 
       // 1. Populate custom data
-      const csvContent = [config.data.columns.join(","), ...config.data.rows.map((row: any[]) => row.join(","))].join(
-        "\n"
-      );
+      const csvContent = [
+        config.data.columns.join(","),
+        ...config.data.rows.map((row: any[]) => row.join(","))
+      ].join("\n");
 
       setCustomCsv(csvContent);
       setInputMode("paste");
@@ -620,6 +606,7 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
       setActiveTab("custom");
       setStatus({ type: "success", message: "Chart generated by AI! Review below." });
       setTimeout(() => setStatus({ type: "idle", message: "" }), 4000);
+
     } catch (error) {
       console.error("AI Error:", error);
       const msg = error instanceof Error ? error.message : String(error);
@@ -658,7 +645,10 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
             Equation
           </div>
           <div className={`tab ${activeTab === "gallery" ? "active" : ""}`} onClick={() => setActiveTab("gallery")}>
-            Gallery
+            📚 Gallery
+          </div>
+          <div className={`tab ${activeTab === "ai" ? "active" : ""}`} onClick={() => setActiveTab("ai")}>
+            ✨ AI Storyteller
           </div>
         </div>
 
@@ -677,37 +667,20 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
           <div className="section custom-section">
             {/* Theme Toggle */}
             <div className="form-group">
-              <div
-                className="option-row"
-                style={{
-                  marginBottom: "10px",
-                  padding: "8px",
-                  background: currentTheme.isDark ? "#333" : "#f5f5f5",
-                  borderRadius: "4px"
-                }}
-              >
-                <label className="option-label" style={{ width: "100%" }}>
-                  <input type="checkbox" checked={useThemeColors} onChange={e => setUseThemeColors(e.target.checked)} />
-                  <span>Sync with Theme ({currentTheme.isDark ? "Dark" : "Light"})</span>
-                  <span style={{ marginLeft: "auto", display: "flex", gap: "5px" }}>
-                    <div
-                      style={{
-                        width: 16,
-                        height: 16,
-                        background: currentTheme.background,
-                        border: "1px solid #ccc",
-                        borderRadius: "50%"
-                      }}
-                      title="Background"
-                    ></div>
-                    <div
-                      style={{ width: 16, height: 16, background: currentTheme.text, borderRadius: "50%" }}
-                      title="Text"
-                    ></div>
-                    <div
-                      style={{ width: 16, height: 16, background: currentTheme.accent, borderRadius: "50%" }}
-                      title="Accent"
-                    ></div>
+              <div className="option-row" style={{ marginBottom: '10px', padding: '8px', background: currentTheme.isDark ? '#333' : '#f5f5f5', borderRadius: '4px' }}>
+                <label className="option-label" style={{ width: '100%' }}>
+                  <input
+                    type="checkbox"
+                    checked={useThemeColors}
+                    onChange={e => setUseThemeColors(e.target.checked)}
+                  />
+                  <span>
+                    Sync with Theme ({currentTheme.isDark ? 'Dark' : 'Light'})
+                  </span>
+                  <span style={{ marginLeft: 'auto', display: 'flex', gap: '5px' }}>
+                    <div style={{ width: 16, height: 16, background: currentTheme.background, border: '1px solid #ccc', borderRadius: '50%' }} title="Background"></div>
+                    <div style={{ width: 16, height: 16, background: currentTheme.text, borderRadius: '50%' }} title="Text"></div>
+                    <div style={{ width: 16, height: 16, background: currentTheme.accent, borderRadius: '50%' }} title="Accent"></div>
                   </span>
                 </label>
               </div>
@@ -1074,7 +1047,9 @@ const GraphApp: React.FC<AppProps> = ({ addOnUISdk, prefillEquation, initialMode
         )}
 
         {/* Gallery Tab */}
-        {activeTab === "gallery" && <Gallery onSelectTemplate={handleTemplateSelect} />}
+        {activeTab === "gallery" && (
+          <Gallery onSelectTemplate={handleTemplateSelect} />
+        )}
 
         {/* Debug Info */}
         {debugInfo && (
